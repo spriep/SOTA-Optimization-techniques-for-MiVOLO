@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "./Pytorch_Retinaface"
+    ],
+    "python.autoComplete.extraPaths": [
+        "./Pytorch_Retinaface"
+    ]
+}

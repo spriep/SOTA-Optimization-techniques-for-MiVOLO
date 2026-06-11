@@ -1,6 +1,6 @@
 env_resi_gvis/
-Pytorch_RetinaFace/
+Pytorch_Retinaface/
 data/
 processed_data/
-exportar_onnx.py
+weights/
 *.onnx

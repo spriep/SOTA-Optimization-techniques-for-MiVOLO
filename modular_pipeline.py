@@ -1,36 +1,39 @@
-# pipeline_modular.py
 import cv2
 import torch
 import os
 import time 
 
-# Importamos nuestras piezas de Lego moleculares
+# Importing our modular models (detectors and estimators)
 from models_archive.detector_retinaface import RetinaFaceDetector
+from models_archive.detector_retinaface_onnx import RetinaFaceDetector
+
 from models_archive.estimator_resnet50 import ResNetAgeEstimator
+from models_archive.estimator_mobilenetv3 import MobileNetAgeEstimator
 
 # =====================================================================
 # CONFIGURATION OF THE EXPERIMENT (device + model choices)
 # =====================================================================
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Instanciamos el detector y estimador elegidos para este experimento
+# Instanciating the chosen detector and estimator for this experiment
 detector = RetinaFaceDetector(
-    weights_path="Pytorch_Retinaface/weights/mobilenet0.25_Final.pth", 
+    #weights_path="Pytorch_Retinaface/weights/mobilenet0.25_Final.pth", 
+    onnx_path="weights/retinaface_mnet.onnx",
     device=device
 )
 
-estimator = ResNetAgeEstimator(
-    weights_path=None, # Pon aquí la ruta a tus pesos entrenados cuando los tengas
+estimator = MobileNetAgeEstimator(
+    weights_path="weights/mobilenet_v3_ordinal_age.pth", # If we have pretrained weights its path should be written here
     device=device
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-input_video_path = os.path.join(BASE_DIR, "data", "video_test_1.mp4")
-output_video_path = os.path.join(BASE_DIR, "processed_data", "output_video_1.mp4")
+input_video_path = os.path.join(BASE_DIR, "data", "video_test_2.mp4")
+output_video_path = os.path.join(BASE_DIR, "processed_data", "output_video_2_mobilenet_with_weights.mp4")
 
 # =====================================================================
-# PRINCIPAL PIPELINE FOR VIDEO PROCESSING
+# MAIN PIPELINE FOR VIDEO PROCESSING
 # =====================================================================
 # OpenCV goes to the video on the harddrive, decodes 1 frame and extracts a NumPy matrix (three chanel photo), saves it in the frame variable, 
 # this frame vraiable is procesed by RetinaFace (searches for faces and retourns the coordinates of the bounding boxes), then we crop the face and we send it to the Age ResNet, 
@@ -47,20 +50,23 @@ fps      = cap.get(cv2.CAP_PROP_FPS)
 fourcc   = cv2.VideoWriter_fourcc(*'mp4v')
 out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_w, frame_h))
 
-print(f"[*] Iniciando experimento modular en: {device}")
+print(f"[*] Starting pipeline on: {device}")
 
 frame_count = 0
 while cap.isOpened():           # loop for processing each freame till the end of the video
-    '''t_start = time.perf_counter()'''
+    #capturing cicle start time
+    t_start = time.perf_counter()
     ret, frame = cap.read()     # frame = NumPy matrix, ret= boolean that indicates if the frame was read successfully or if we reached the end of the video
     if not ret:
         break
     frame_count += 1
 
-    '''t_read = time.perf_counter()'''
+    #first control point --> End of reading the physical frame
+    t_read = time.perf_counter()
     # Detector is invoqued  
     detections = detector.detect(frame) #returns a list where each detection is a list of 5 elements: [x_min, y_min, x_max, y_max, confidence_score]
-    '''t_detect = time.perf_counter()'''
+    #second control point --> End of the detection process
+    t_detect = time.perf_counter()
     
     for det in detections:
         x_min, y_min, x_max, y_max, score = det
@@ -81,14 +87,16 @@ while cap.isOpened():           # loop for processing each freame till the end o
         cv2.putText(frame, f"Age: {predicted_age_int}", (x_min, y_min - 10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
 
-    '''t_estimate = time.perf_counter()'''
+    # Third control point --> End of the estimation process
+    t_estimate = time.perf_counter()
 
     out_video.write(frame)
     if frame_count % 30 == 0:
         print(f" -> Processed frames: {frame_count}")
     
-    '''t_write = time.perf_counter()
-    time_read_ms     = (t_read - t_start) * 1000
+    #fourth control point --> End of the cycle
+    t_write = time.perf_counter()
+    '''time_read_ms     = (t_read - t_start) * 1000
     time_detect_ms   = (t_detect - t_read) * 1000
     time_estimate_ms = (t_estimate - t_detect) * 1000
     time_write_ms    = (t_write - t_estimate) * 1000

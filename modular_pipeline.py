@@ -9,6 +9,7 @@ from models_archive.detector_retinaface_onnx import RetinaFaceDetector
 
 from models_archive.estimator_resnet50 import ResNetAgeEstimator
 from models_archive.estimator_mobilenetv3 import MobileNetAgeEstimator
+from models_archive.estimator_mivolo import MiVOLOAgeEstimator
 
 # =====================================================================
 # CONFIGURATION OF THE EXPERIMENT (device + model choices)
@@ -22,15 +23,64 @@ detector = RetinaFaceDetector(
     device=device
 )
 
-estimator = MobileNetAgeEstimator(
-    weights_path="weights/mobilenet_v3_ordinal_age.pth", # If we have pretrained weights its path should be written here
+estimator = MiVOLOAgeEstimator( 
+    #weights_path="weights/model_imdb_cross_person_4.22_99.46.pth.tar", #for official test with face+body (results prcessed_data/resultado_100_ofoocial.jpg)
+    weights_path="weights/model_only_age_imdb_4.29.pth.tar",
     device=device
 )
 
+'''estimator = MobileNetAgeEstimator(
+    weights_path="weights/mobilenet_v3_ordinal_age.pth", # If we have pretrained weights its path should be written here
+    device=device
+)'''
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-input_video_path = os.path.join(BASE_DIR, "data", "video_test_2.mp4")
-output_video_path = os.path.join(BASE_DIR, "processed_data", "output_video_2_mobilenet_with_weights.mp4")
+input_video_path = os.path.join(BASE_DIR, "data", "video_test_1.mp4")
+output_video_path = os.path.join(BASE_DIR, "processed_data", "output_video_1_mivolo.mp4")
+
+# ADAPTATION OF CROPS TO MIVOLO FORMAT (SQUARE WITH MARGIN)
+def get_square_crop_with_padding(frame, x_min, y_min, x_max, y_max, margin=1.3):
+    h, w = frame.shape[:2]
+    
+    # Dimensions of the original box
+    box_w = x_max - x_min
+    box_h = y_max - y_min
+    
+    # Center of the face
+    cx = x_min + box_w // 2
+    cy = y_min + box_h // 2
+    
+    # Side of the new square with the margin
+    side = int(max(box_w, box_h) * margin)
+    
+    # Ideal coordinates (they can go outside the image with negative numbers)
+    new_x1 = cx - side // 2
+    new_y1 = cy - side // 2
+    new_x2 = cx + side // 2
+    new_y2 = cy + side // 2
+    
+    # We calculate how many pixels are "missing" on each side if we go outside the border
+    pad_top = max(0, -new_y1)
+    pad_bottom = max(0, new_y2 - h)
+    pad_left = max(0, -new_x1)
+    pad_right = max(0, new_x2 - w)
+    
+    #  we cut only the valid part that exists inside the real frame
+    valid_x1 = max(0, new_x1)
+    valid_y1 = max(0, new_y1)
+    valid_x2 = min(w, new_x2)
+    valid_y2 = min(h, new_y2)
+    
+    crop_valid = frame[valid_y1:valid_y2, valid_x1:valid_x2]
+    
+    # If the box went outside the image on any side, fill the empty space with black to maintain the aspect ratio of the square without distorting the image
+    if pad_top > 0 or pad_bottom > 0 or pad_left > 0 or pad_right > 0:
+        face_crop = cv2.copyMakeBorder(crop_valid, pad_top, pad_bottom, pad_left, pad_right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+    else:
+        face_crop = crop_valid
+        
+    return face_crop
 
 # =====================================================================
 # MAIN PIPELINE FOR VIDEO PROCESSING
@@ -71,10 +121,9 @@ while cap.isOpened():           # loop for processing each freame till the end o
     for det in detections:
         x_min, y_min, x_max, y_max, score = det
         x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
-        x_min, y_min = max(0, x_min), max(0, y_min)
-        x_max, y_max = min(frame_w, x_max), min(frame_h, y_max)
-        
-        face_crop = frame[y_min:y_max, x_min:x_max] # cutting the photo croped by the bounding box coordinates
+
+        face_crop = get_square_crop_with_padding(frame, x_min, y_min, x_max, y_max, margin=1.3)
+
         if face_crop.size == 0:
             continue
             

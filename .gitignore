@@ -3,4 +3,7 @@ Pytorch_Retinaface/
 data/
 processed_data/
 weights/
+mivolo/
 *.onnx
+__pycache__/
+*.pyc

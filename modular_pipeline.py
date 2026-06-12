@@ -9,12 +9,13 @@ from models_archive.detector_retinaface_onnx import RetinaFaceDetector
 
 from models_archive.estimator_resnet50 import ResNetAgeEstimator
 from models_archive.estimator_mobilenetv3 import MobileNetAgeEstimator
-from models_archive.estimator_mivolo import MiVOLOAgeEstimator
+from models_archive.estimator_mivolo_faceonly import MiVOLOAgeEstimator
 
 # =====================================================================
 # CONFIGURATION OF THE EXPERIMENT (device + model choices)
 # =====================================================================
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"[*] Starting pipeline on: {device}")
 
 # Instanciating the chosen detector and estimator for this experiment
 detector = RetinaFaceDetector(
@@ -90,7 +91,7 @@ def get_square_crop_with_padding(frame, x_min, y_min, x_max, y_max, margin=1.3):
 # which returns a number (the age estimation), OpenCV draws the green box and the text directly over that photo, and finally we save the frame in a new video file.
 cap = cv2.VideoCapture(input_video_path) # Open the video file for reading
 if not cap.isOpened():
-    print(f"[Error] No se pudo abrir el vídeo: {input_video_path}")
+    print(f"[Error] Video couldnt be opened: {input_video_path}")
     exit()
 
 # Extraction of metadata from the video to configure the output video writer
@@ -100,7 +101,6 @@ fps      = cap.get(cv2.CAP_PROP_FPS)
 fourcc   = cv2.VideoWriter_fourcc(*'mp4v')
 out_video = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_w, frame_h))
 
-print(f"[*] Starting pipeline on: {device}")
 
 frame_count = 0
 while cap.isOpened():           # loop for processing each freame till the end of the video

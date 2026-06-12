@@ -37,7 +37,7 @@ class MiVOLOAgeEstimator(BaseEstimator):
         self.mivolo_wrapper = MiVOLO(
             weights_path, 
             device=str(self.device),
-            half=False # Desactivamos la precisión media (FP16) para el primer test de seguridad ----------------------------------------------------
+            half=False # False --> half precisión (FP16) ; True --> full precisión (FP32) ----------------------------------------------------
         ) 
         # Extracting the mathematical model for inference
         self.model = self.mivolo_wrapper.model
@@ -51,14 +51,15 @@ class MiVOLOAgeEstimator(BaseEstimator):
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
     
-    def estimate(self, face_crop):
+    def estimate(self, face_crop, body_crop):
         face_crop_rgb = cv2.cvtColor(face_crop, cv2.COLOR_BGR2RGB)
+        body_crop_rgb = cv2.cvtColor(body_crop, cv2.COLOR_BGR2RGB)
         tensor_face = self.transform(face_crop_rgb).unsqueeze(0).to(self.device)
+        tensor_body = self.transform(body_crop_rgb).unsqueeze(0).to(self.device)
         
         with torch.no_grad():
             # Passing the fases through the transformer
-            #output = self.mivolo_wrapper.inference(tensor_face) # for using test_oficial face+body (results prcessed_data/resultado_100_ofoocial.jpg)
-            output = self.model(tensor_face) # Directly using the model for inference, without the wrapper's postprocessing (which is designed for the original MiVOLO outputs)
+            output = self.model(torch.cat([tensor_face, tensor_body], dim=1)) # Directly using the model for inference, without the wrapper's postprocessing (which is designed for the original MiVOLO outputs)
             
             # If the models outputs 1 number (age)
             if output.shape[1] == 1:

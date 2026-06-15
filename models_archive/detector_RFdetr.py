@@ -2,7 +2,7 @@ import torch
 from rfdetr import RFDETRMedium, RFDETRLarge
 import supervision as sv
 
-class RTDETRDetector:
+class RFDETRDetector:
     def __init__(self, weights_path="medium", device=None):
         """
         Wrapper for the official Roboflow RF-DETR model. selecting size

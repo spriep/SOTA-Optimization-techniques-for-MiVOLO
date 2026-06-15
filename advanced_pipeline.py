@@ -71,43 +71,58 @@ while cap.isOpened():
     if not ret:
         break
     frame_count += 1
+    h, w = frame.shape[:2]
+    margin = 20
+    retina_target_size = (320, 320)
 
     # --- 1) BODY DETECTION ---
     body_detections = body_detector.detect(frame)
     persons = [Person(id=i, body_box=[int(b[0]), int(b[1]), int(b[2]), int(b[3])], body_score=b[4]) for i, b in enumerate(body_detections)]
 
-    # --- 2) FACE DETECTION ---
-    face_detections = face_detector.detect(frame)
-
-    # --- 3) FACE+BODY MATCHING ---
-    for fx1, fy1, fx2, fy2, f_score in face_detections:                     # faces center is calculated
-        fcx, fcy = (fx1 + fx2) // 2, (fy1 + fy2) // 2                       #if this position is inside someone bodybox, match, we save the metadata on the person object
-        for person in persons:
-            bx1, by1, bx2, by2 = person.body_box
-            if bx1 <= fcx <= bx2 and by1 <= fcy <= by2:
-                person.face_box = [int(fx1), int(fy1), int(fx2), int(fy2)]
-                person.face_score = f_score
-                break
+    # --- 2) FACE DETECTION (on body crops)---
+    for person in persons:
+        bx1, by1, bx2, by2 = person.body_box
+        
+        # 1. Add a safety margin in case one side is cut.
+        y1, y2 = max(0, by1 - margin), min(h, by2 + margin)
+        x1, x2 = max(0, bx1 - margin), min(w, bx2 + margin)
+        body_crop_retina = frame[y1:y2, x1:x2]
+        
+        # 2. Resize for RetinaFace (avoids dimensional errors)
+        body_crop_resized = cv2.resize(body_crop_retina, retina_target_size)
+        
+        # 3. Local Detection
+        local_faces = face_detector.detect(body_crop_resized)
+        local_faces = sorted(local_faces, key=lambda x: x[4], reverse=True)
+        
+        if local_faces is not None:
+            # Get the face with the best score
+            fx1, fy1, fx2, fy2, f_score = local_faces[0]
+            
+            # Rescale face coordinates (return to the original cropped size)
+            scale_x = (x2 - x1) / retina_target_size[0]
+            scale_y = (y2 - y1) / retina_target_size[1]
+            
+            # Convert to global coordinates of the original frame
+            person.face_box = [int(x1 + fx1 * scale_x), int(y1 + fy1 * scale_y), int(x1 + fx2 * scale_x), int(y1 + fy2 * scale_y)]
+            person.face_score = f_score
 
     # --- 4) AGE ESTIMATION AND DRAWING AREA ---
-    for person in persons:
-        # 1. Dibujamos el cuerpo en azul
+        # Drawing the body square in blue
         if person.body_box:
-            bx1, by1, bx2, by2 = person.body_box
             cv2.rectangle(frame, (bx1, by1), (bx2, by2), (255, 0, 0), 2)
             cv2.putText(frame, f"ID:{person.id}", (bx1, by1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
         # If the person has his face visible we calculate the age estimation
-        if person.has_face():
-            fx1, fy1, fx2, fy2 = person.face_box
-            
+        if person.has_face():   
             # Crop format adpatation and enetering MiVOLO
-            face_crop = get_square_crop_with_padding(frame, fx1, fy1, fx2, fy2, margin=1.3)
-            body_crop = frame[person.body_box[1]:person.body_box[3], person.body_box[0]:person.body_box[2]]
+            fx1, fy1, fx2, fy2 = [int(v) for v in person.face_box]
+            face_crop_mivolo = get_square_crop_with_padding(frame, fx1, fy1, fx2, fy2, margin=1.3)
+            bx1, by1, bx2, by2 = [int(v) for v in person.body_box]
+            body_crop_mivolo = get_square_crop_with_padding(frame, bx1, by1, bx2, by2, margin=1.0)
             
-            if face_crop.size > 0:
-                face_crop = get_square_crop_with_padding(frame, *person.face_box, margin=1.3)
-                age = int(round(age_estimator.estimate(face_crop, body_crop)))
+            if face_crop_mivolo.size > 0:
+                age = int(round(age_estimator.estimate(face_crop_mivolo, body_crop_mivolo)))
                 cv2.rectangle(frame, (person.face_box[0], person.face_box[1]), (person.face_box[2], person.face_box[3]), (0, 255, 0), 2)
                 cv2.putText(frame, f"Age: {age}", (person.face_box[0], person.face_box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 

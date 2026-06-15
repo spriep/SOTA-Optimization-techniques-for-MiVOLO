@@ -37,8 +37,8 @@ estimator = MiVOLOAgeEstimator(
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-input_video_path = os.path.join(BASE_DIR, "data", "video_test_1.mp4")
-output_video_path = os.path.join(BASE_DIR, "processed_data", "output_video_1_mivolo.mp4")
+input_video_path = os.path.join(BASE_DIR, "example_data", "video_test_1.mp4")
+output_video_path = os.path.join(BASE_DIR, "example_data/processed_data", "output_video_1_mivolo.mp4")
 
 # ADAPTATION OF CROPS TO MIVOLO FORMAT (SQUARE WITH MARGIN)
 def get_square_crop_with_padding(frame, x_min, y_min, x_max, y_max, margin=1.3):

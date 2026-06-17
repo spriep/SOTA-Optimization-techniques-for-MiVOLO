@@ -8,6 +8,7 @@ import numpy as np
 from objects_archive.base_person import Person
 
 from models_archive.detector_RFdetr import RFDETRDetector               # Body detector --> body crops + coordinates
+from models_archive.detector_RTdetr import RTDETRDetector               
 from models_archive.detector_retinaface_onnx import RetinaFaceDetector  # Face detector inside body crops --> face crops + coordinates
 from models_archive.estimator_mivolo_facebody import MiVOLOAgeEstimator          # Age estimator face+body
 
@@ -16,8 +17,10 @@ body_weights_path = os.path.join(user_home, ".roboflow", "models", "rf-detr-medi
 
 MODEL_CONFIG = {
     "body": {
-        "path": body_weights_path,
-        "class": RFDETRDetector
+        #"path": body_weights_path,
+        #"class": RFDETRDetector
+        "path": "PekingU/rtdetr_r50vd",
+        "class": RTDETRDetector
     },
     "face": {
         "path": "weights/retinaface_mnet.onnx",
@@ -50,7 +53,7 @@ age_estimator = MODEL_CONFIG["age"]["class"](weights_path=MODEL_CONFIG["age"]["p
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 input_video_path = os.path.join(BASE_DIR, "example_data", "video_test_2.mp4")
-output_video_path = os.path.join(BASE_DIR, "example_data/processed_data", "output_null.mp4")
+output_video_path = os.path.join(BASE_DIR, "example_data/processed_data", "output_RT.mp4")
 
 #PADDING FOR MIVOLO
 def get_square_crop_with_padding(frame, x_min, y_min, x_max, y_max, margin=1.3):
@@ -175,8 +178,7 @@ def run_pipeline(input_video_path, output_video_path, save_video=False):
             output_dir = os.path.dirname(output_video_path)
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
-                print(f"[!] Carpeta creada: {output_dir}")
-                out_video.write(frame)
+            out_video.write(frame)
         
         if frame_count % 30 == 0:
             print(f" -> Processed frames: {frame_count}")
@@ -190,4 +192,5 @@ def run_pipeline(input_video_path, output_video_path, save_video=False):
     return age_estimation_per_frame, frame_count 
 
 if __name__ == "__main__":
-    run_pipeline(input_video_path, output_video_path)
+    age_estimations, frame_count = run_pipeline(input_video_path, output_video_path, save_video=True)
+    print(age_estimations)

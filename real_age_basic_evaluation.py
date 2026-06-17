@@ -5,7 +5,6 @@ import pandas as pd
 import torch
 from basic_pipeline import run_pipeline
 
-# Configuración de rutas
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 METADATA_PATH = os.path.join(BASE_DIR, "Real_Age_Faces_Dataset", "real_age_2026_v2.json")
 OUTPUT_DIR = os.path.join(BASE_DIR, "Real_Age_Faces_Dataset", "processed_data", "diezsei_junio")
@@ -33,11 +32,9 @@ def run_benchmark(video_paths):
 
         print(f"[*] Evaluando: {filename} (Edad Real: {gt['age']})")
         
-        # Medir tiempo de ejecución
         torch.cuda.reset_peak_memory_stats()
         start_time = time.time()
         
-        # Llamada al pipeline modular refactorizado
         output_path = os.path.join(OUTPUT_DIR, f"null_{filename}")
         detected_ages, total_frames = run_pipeline(path, output_path, save_video=False)
         
@@ -45,7 +42,6 @@ def run_benchmark(video_paths):
         fps = total_frames / duration if duration > 0 else 0
         vram_peak = torch.cuda.max_memory_allocated() / (1024**2) # MB
         
-        # Cálculo de métricas
         mae = 0
         mean_pred_age = 0
         if detected_ages:
@@ -66,7 +62,6 @@ def run_benchmark(video_paths):
     return pd.DataFrame(results)
 
 if __name__ == "__main__":
-    # Asegurar que el directorio de salida exista
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
         

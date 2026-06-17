@@ -3,7 +3,7 @@ import torch
 import os
 
 # Importing our modular models (detectors and estimators)
-from models_archive.detector_retinaface import RetinaFaceDetector
+#from models_archive.detector_retinaface import RetinaFaceDetector
 from models_archive.detector_retinaface_onnx import RetinaFaceDetector
 
 from models_archive.estimator_resnet50 import ResNetAgeEstimator
@@ -93,14 +93,12 @@ def get_retinaface_resize(frame, target_size=320):
     
     padded = cv2.copyMakeBorder(
         frame, 
-        0, side - h, 0, side - w, # Rellenar abajo y a la derecha
+        0, side - h, 0, side - w, # filling underneath and to the right
         cv2.BORDER_CONSTANT, value=[0, 0, 0]
     )
     
     # 2. Resize
     resized = cv2.resize(padded, (target_size, target_size))
-    
-    # El factor de escala es simplemente el tamaño original dividido por el nuevo
     scale = side / target_size
     
     return resized, scale

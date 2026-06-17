@@ -28,10 +28,19 @@ MODEL_CONFIG = {
         "class": MiVOLOAgeEstimator
     }
 }
+def print_pipeline_status(config, device):
+    print("\n" + "="*40)
+    print(f"ADVANCED PIPELINE INITIALIZED ON: {device.type.upper()}")
+    print("-"*40)
+    for model_name, info in config.items():
+        # Obtenemos solo el nombre de la clase para que sea legible
+        class_name = info['class'].__name__
+        print(f"[{model_name.upper():<6}] {class_name:<20} | Path: {os.path.basename(info['path'])}")
+    print("="*40 + "\n")
 
 #EXPERIMENT CONFIGURATION
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"[*] Inizialating Advanced Pipeline on: {device}")
+print_pipeline_status(MODEL_CONFIG, device)
 
 # We instantiate the three models
 body_detector = MODEL_CONFIG["body"]["class"](weights_path=MODEL_CONFIG["body"]["path"], device=device)
@@ -74,7 +83,7 @@ def get_square_crop_with_padding(frame, x_min, y_min, x_max, y_max, margin=1.3):
 # =====================================================================
 # MAIN PIPELINE FOR VIDEO PROCESSING
 # =====================================================================
-def run_pipeline(input_video_path, output_video_path, save_video=True):
+def run_pipeline(input_video_path, output_video_path, save_video=False):
     cap = cv2.VideoCapture(input_video_path)
     if not cap.isOpened():
         print(f"[Error] Video couldnt be opened: {input_video_path}")
@@ -150,25 +159,24 @@ def run_pipeline(input_video_path, output_video_path, save_video=True):
                 body_crop_mivolo = get_square_crop_with_padding(frame, bx1, by1, bx2, by2, margin=1.0)
                 
                 if face_crop_mivolo.size > 0:
-                    age = int(round(age_estimator.estimate(face_crop_mivolo, body_crop_mivolo)))
-                    age_estimation_per_frame.append(age)
-                    '''raw_age = age_estimator.estimate(face_crop_mivolo, body_crop_mivolo)
+                    '''age = int(round(age_estimator.estimate(face_crop_mivolo, body_crop_mivolo)))
+                    age_estimation_per_frame.append(age)'''
+                    raw_age = age_estimator.estimate(face_crop_mivolo, body_crop_mivolo)
                     age_buffer.append(raw_age)
                     if len(age_buffer) > 0:
                         smoothed_age = int(round(np.mean(age_buffer)))
-                        age_estimation_per_frame.append(smoothed_age)'''
+                        age_estimation_per_frame.append(smoothed_age)
 
                     cv2.rectangle(frame, (person.face_box[0], person.face_box[1]), (person.face_box[2], person.face_box[3]), (0, 255, 0), 2)
-                    #cv2.putText(frame, f"Age: {smoothed_age}", (person.face_box[0], person.face_box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                    cv2.putText(frame, f"Age: {age}", (person.face_box[0], person.face_box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                    cv2.putText(frame, f"Age: {smoothed_age}", (person.face_box[0], person.face_box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                    #cv2.putText(frame, f"Age: {age}", (person.face_box[0], person.face_box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         
-        output_dir = os.path.dirname(output_video_path)
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-            print(f"[!] Carpeta creada: {output_dir}")
-
         if save_video and out_video is not None:
-            out_video.write(frame)
+            output_dir = os.path.dirname(output_video_path)
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+                print(f"[!] Carpeta creada: {output_dir}")
+                out_video.write(frame)
         
         if frame_count % 30 == 0:
             print(f" -> Processed frames: {frame_count}")
@@ -176,7 +184,9 @@ def run_pipeline(input_video_path, output_video_path, save_video=True):
     cap.release()
     if save_video and out_video is not None:
         out_video.release()
-    print(f"[+] Experiment successfully completed. Video available in: {output_video_path}")
+        print(f"[+] Video successfully processed. Video available in: {output_video_path}")
+    else:
+        print(f"[+] Video successfully processed.")
     return age_estimation_per_frame, frame_count 
 
 if __name__ == "__main__":

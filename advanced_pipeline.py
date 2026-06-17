@@ -55,34 +55,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 input_video_path = os.path.join(BASE_DIR, "example_data", "video_test_2.mp4")
 output_video_path = os.path.join(BASE_DIR, "example_data/processed_data", "output_RT.mp4")
 
-#PADDING FOR MIVOLO
-def get_square_crop_with_padding(frame, x_min, y_min, x_max, y_max, margin=1.3):
-    h, w = frame.shape[:2]
-    box_w, box_h = x_max - x_min, y_max - y_min
-    cx, cy = x_min + box_w // 2, y_min + box_h // 2
-    # Side of the new square with the margin
-    side = int(max(box_w, box_h) * margin)
-    
-    new_x1, new_y1 = cx - side // 2, cy - side // 2
-    new_x2, new_y2 = cx + side // 2, cy + side // 2
-    
-    pad_top, pad_bottom = max(0, -new_y1), max(0, new_y2 - h)
-    pad_left, pad_right = max(0, -new_x1), max(0, new_x2 - w)
-    
-    valid_x1 = max(0, new_x1)
-    valid_y1 = max(0, new_y1)
-    valid_x2 = min(w, new_x2)
-    valid_y2 = min(h, new_y2)
-    
-    crop_valid = frame[valid_y1:valid_y2, valid_x1:valid_x2]
-    
-    if pad_top > 0 or pad_bottom > 0 or pad_left > 0 or pad_right > 0:
-        face_crop = cv2.copyMakeBorder(crop_valid, pad_top, pad_bottom, pad_left, pad_right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
-    else:
-        face_crop = crop_valid
-        
-    return face_crop
-
 # =====================================================================
 # MAIN PIPELINE FOR VIDEO PROCESSING
 # =====================================================================
@@ -155,24 +127,17 @@ def run_pipeline(input_video_path, output_video_path, save_video=False):
 
             # If the person has his face visible we calculate the age estimation
             if person.has_face():   
-                # Crop format adpatation and enetering MiVOLO
-                fx1, fy1, fx2, fy2 = [int(v) for v in person.face_box]
-                face_crop_mivolo = get_square_crop_with_padding(frame, fx1, fy1, fx2, fy2, margin=1.3)
-                bx1, by1, bx2, by2 = [int(v) for v in person.body_box]
-                body_crop_mivolo = get_square_crop_with_padding(frame, bx1, by1, bx2, by2, margin=1.0)
-                
-                if face_crop_mivolo.size > 0:
-                    '''age = int(round(age_estimator.estimate(face_crop_mivolo, body_crop_mivolo)))
-                    age_estimation_per_frame.append(age)'''
-                    raw_age = age_estimator.estimate(face_crop_mivolo, body_crop_mivolo)
-                    age_buffer.append(raw_age)
-                    if len(age_buffer) > 0:
-                        smoothed_age = int(round(np.mean(age_buffer)))
-                        age_estimation_per_frame.append(smoothed_age)
+                '''age = int(round(age_estimator.estimate(face_crop_mivolo, body_crop_mivolo)))
+                age_estimation_per_frame.append(age)'''
+                raw_age = age_estimator.estimate(frame, person.face_box, person.body_box)
+                age_buffer.append(raw_age)
+                if len(age_buffer) > 0:
+                    smoothed_age = int(round(np.mean(age_buffer)))
+                    age_estimation_per_frame.append(smoothed_age)
 
-                    cv2.rectangle(frame, (person.face_box[0], person.face_box[1]), (person.face_box[2], person.face_box[3]), (0, 255, 0), 2)
-                    cv2.putText(frame, f"Age: {smoothed_age}", (person.face_box[0], person.face_box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                    #cv2.putText(frame, f"Age: {age}", (person.face_box[0], person.face_box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                cv2.rectangle(frame, (person.face_box[0], person.face_box[1]), (person.face_box[2], person.face_box[3]), (0, 255, 0), 2)
+                cv2.putText(frame, f"Age: {smoothed_age}", (person.face_box[0], person.face_box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                #cv2.putText(frame, f"Age: {age}", (person.face_box[0], person.face_box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         
         if save_video and out_video is not None:
             output_dir = os.path.dirname(output_video_path)

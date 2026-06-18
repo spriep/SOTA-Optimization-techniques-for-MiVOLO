@@ -12,9 +12,9 @@
     <br>    6.1. I added a moving average to the age estimation updating trying to fix the visual oscilations
     <br>    6.2. Had to change the advanced pipeline and make the main loop a function so it could be imported on the evaluation scripts
     <br>    6.3. Added a save_video bool variable so you can disable the saving of the videos for big benchmarks
-8. Creation of the basic pipeline benchmarking  (FPS, MAE, VRAM_MB)
+7. Creation of the basic pipeline benchmarking  (FPS, MAE, VRAM_MB)
     <br>    7.1. The former modular pipeline
-9. Implementation of RT-DETR
-10. Changing the resize from MiVOLO and RetinaFace. Now the resizing is done with the model's own methods and its implemented as a function from the detector/estimator class
- <br>    10.1. To implement this changes its necessary to have the official repositories dowloaded on the projects folder
+8. Implementation of RT-DETR
+9. Changing the resize from MiVOLO and RetinaFace. Now the resizing is done with the model's own methods and its implemented as a function from the detector/estimator class
+ <br>    9.1. To implement this changes its necessary to have the official repositories dowloaded on the projects folder
    

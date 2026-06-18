@@ -15,4 +15,6 @@
 8. Creation of the basic pipeline benchmarking  (FPS, MAE, VRAM_MB)
     <br>    7.1. The former modular pipeline
 9. Implementation of RT-DETR
+10. Changing the resize from MiVOLO and RetinaFace. Now the resizing is done with the model's own methods and its implemented as a function from the detector/estimator class
+ <br>    10.1. To implement this changes its necessary to have the official repositories dowloaded on the projects folder
    

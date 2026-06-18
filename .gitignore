@@ -7,3 +7,4 @@ mivolo/
 __pycache__/
 *.pyc
 Real_Age_Faces_Dataset/
+images_datasets/

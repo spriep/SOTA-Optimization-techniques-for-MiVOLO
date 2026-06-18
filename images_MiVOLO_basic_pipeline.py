@@ -2,6 +2,8 @@ import cv2
 import torch
 import os
 from models_archive.estimator_mivolo_faceonly import MiVOLOAgeEstimator
+import json
+import time
 
 # Configuración
 MODEL_CONFIG = {
@@ -26,30 +28,67 @@ estimator = MODEL_CONFIG["age"]["class"](weights_path=MODEL_CONFIG["age"]["path"
 
 print_pipeline_status(MODEL_CONFIG, device)
 
-def process_image(image_path):
-    # 1. Leer la imagen
-    frame = cv2.imread(image_path)
-    if frame is None:
-        print(f"[Error] No se pudo cargar la imagen: {image_path}")
-        return
+# AT THE MOMENT IS FACE ONLY
+def process_images_folder(folder_path, save_photo=False):
+    base_dir = os.path.dirname(os.path.abspath(folder_path))
+    output_folder = os.path.join(base_dir, "processed_data")    
+    
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+        
+    valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp')
+    
+    # List with all the images within the folder
+    files = [f for f in os.listdir(folder_path) if f.lower().endswith(valid_extensions)]
+    total_files = len(files)
+    
+    print(f"[*] {len(files)} images where found in '{folder_path}'")
+    
+    results_dict = {}
+    total_inference_time = 0.0
+    for i, file_name in enumerate(files, start=1):
+        img_path = os.path.join(folder_path, file_name)
+        frame = cv2.imread(img_path)
+        
+        if frame is None:
+            print(f"[!] {file_name} Couldnt be load. Skipping...")
+            continue
 
-    h, w = frame.shape[:2]
-    
-    # 2. Definir la "caja" como la imagen completa (x_min, y_min, x_max, y_max)
-    # Si la imagen es una cara centrada, esto funcionará directamente
-    face_box = [0, 0, w, h]
-    
-    # 3. Estimar la edad
-    # El método estimate en tu clase actual recorta basándose en face_box
-    predicted_age = estimator.estimate(frame, face_box)
-    
-    print(f"[*] Edad estimada: {predicted_age} años")
-    
-    # (Opcional) Guardar resultado visual
-    cv2.putText(frame, f"Age: {predicted_age}", (20, 50), 
-                cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
-    cv2.imwrite("resultado_estimacion.jpg", frame)
-    print("[+] Imagen procesada guardada como 'resultado_estimacion.jpg'")
+        h, w = frame.shape[:2]
+        face_box = [0, 0, w, h]
+        
+        # Inference
+        torch.cuda.reset_peak_memory_stats()
+        start_time = time.perf_counter()
+        predicted_age = estimator.estimate(frame, face_box)
+        end_time = time.perf_counter()
+        vram_peak = torch.cuda.max_memory_allocated() / (1024**2) # MB
+        total_inference_time += (end_time - start_time)
+
+        results_dict[file_name] = { #JSON
+            "age": float(predicted_age) 
+        }
+        
+        if save_photo==True:
+            cv2.putText(frame, f"Age: {predicted_age}", (20, 50), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            
+            output_path = os.path.join(output_folder, f"result_{file_name}")
+            cv2.imwrite(output_path, frame)
+
+        if i % 500 == 0 or i == total_files:
+                porcentaje = (i / total_files) * 100
+                print(f"[PROGRESS] Processed: {i}/{total_files} ({porcentaje:.1f}%) | Total: {total_files - i}")
+
+    if save_photo == True:
+        print(f"[+] Process completed. Results saved in: '{output_folder}'")
+    else:
+        print(f"[+] Process completed.")
+
+    json_output_path = os.path.join(base_dir, r"UTK_MiVOLO_RESULTS_onlyface_basic.json")
+    with open(json_output_path, "w") as json_file:
+        json.dump(results_dict, json_file, indent=2)
+    return total_inference_time, vram_peak, len(files)
 
 if __name__ == "__main__":
-    process_image("ruta/a/tu/imagen.jpg")
+    process_images_folder(r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\UTKFace")

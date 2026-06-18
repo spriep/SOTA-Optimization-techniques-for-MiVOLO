@@ -17,4 +17,20 @@
 8. Implementation of RT-DETR
 9. Changing the resize from MiVOLO and RetinaFace. Now the resizing is done with the model's own methods and its implemented as a function from the detector/estimator class
  <br>    9.1. To implement this changes its necessary to have the official repositories dowloaded on the projects folder
+10. Made a just MiVOLO (only_face) pipeline and a benchmark with new metrics (RMSE, CS5%, CS10%,MAE/Model_size,FPS/MB, FPS/MAE) to test UTKFace datatset
    
+## 📊 MiVOLO (just_face) UTKFace Results
+
+| Metric | Value |
+|----------|----------:|
+| **MAE** | 5.5213 |
+| **RMSE** | 7.3823 |
+| **FPS** | 43.38 |
+| **Total Inference Time (s)** | 546.49 |
+| **VRAM Usage (MB)** | 115.76 |
+| **Model Size (MB)** | 98.70 |
+| **CS@5%** | 57.00% |
+| **CS@10%** | 85.77% |
+| **MAE / Model Size** | 0.0559 |
+| **FPS / Model Size** | 0.4395 |
+| **Efficiency (FPS / MAE)** | 7.8573 |

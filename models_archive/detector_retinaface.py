@@ -1,3 +1,4 @@
+# DEPRACATED USE THE RETINAFACE_ONNX INSTEAD !!!!!!
 import os
 import sys
 import torch

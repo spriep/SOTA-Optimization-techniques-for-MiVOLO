@@ -6,7 +6,6 @@ import numpy as np
 
 
 # Importing our modular models (detectors and estimators)
-#from models_archive.detector_retinaface import RetinaFaceDetector
 from models_archive.detector_retinaface_onnx import RetinaFaceDetector
 
 from models_archive.estimator_resnet50 import ResNetAgeEstimator
@@ -57,21 +56,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 input_video_path = os.path.join(BASE_DIR, "example_data", "video_test_2.mp4")
 output_video_path = os.path.join(BASE_DIR, "example_data/processed_data", "new_modular_basic.mp4")
 
-def get_retinaface_resize(frame, target_size=320):
-    h, w = frame.shape[:2]
-    side = max(h, w)
-    
-    padded = cv2.copyMakeBorder(
-        frame, 
-        0, side - h, 0, side - w, # filling underneath and to the right
-        cv2.BORDER_CONSTANT, value=[0, 0, 0]
-    )
-    
-    # 2. Resize
-    resized = cv2.resize(padded, (target_size, target_size))
-    scale = side / target_size
-    
-    return resized, scale
 
 # =====================================================================
 # MAIN PIPELINE FOR VIDEO PROCESSING
@@ -105,16 +89,18 @@ def run_pipeline(input_video_path, output_video_path, save_video=False):
         if not ret:
             break
         frame_count += 1
-
-        frame_res, scale = get_retinaface_resize(frame, target_size=320)
         # Detector is invoqued  
-        detections = detector.detect(frame_res) #returns a list where each detection is a list of 5 elements: [x_min, y_min, x_max, y_max, confidence_score]
+        detections = detector.detect(frame) #returns a list where each detection is a list of 5 elements: [x_min, y_min, x_max, y_max, confidence_score]
         for det in detections:
-            x_min, y_min, x_max, y_max, score = det
-            x1 = int(round(x_min * scale))
-            y1 = int(round(y_min * scale))
-            x2 = int(round(x_max * scale))
-            y2 = int(round(y_max * scale))  
+            x1_f, y1_f, x2_f, y2_f, score = det
+            
+            # Casting to int to avoid errors
+            x1, y1, x2, y2 = int(x1_f), int(y1_f), int(x2_f), int(y2_f)
+            
+            # Making sure the coordinates are within the frame --> avoid errors of drawing outside the limits
+            h, w = frame.shape[:2]
+            x1, y1 = max(0, x1), max(0, y1)
+            x2, y2 = min(w, x2), min(h, y2)
 
             # Age estimation is invoqued
             '''age = int(round(estimator.estimate(frame, [x1, y1, x2, y2])))

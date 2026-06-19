@@ -19,25 +19,25 @@
  <br>    9.1. To implement this changes its necessary to have the official repositories dowloaded on the projects folder
 10. Made a just MiVOLO (only_face) pipeline and a benchmark with new metrics (RMSE, CS5%, CS10%,MAE/Model_size,FPS/MB, FPS/MAE) to test UTKFace datatset
    
-## 📊 MiVOLO with 
+## MiVOLO with iVOLO_d1 model (face-only)(age only): Dataset (train and test)=UTK (weights/model_only_age_imdb_4.29.pth.tar)
 
-| Metric | MiVOLO (just_face) UTKFace | MiVOLO (just_face) MORPH 2 |
+| Metrics | UTK dataset | MORPH2 dataset |
 |----------|----------:|----------:|
-| **MAE** | 5.5213 | 7.9352 |
-| **RMSE** | 7.3823 | 11.7037 |
-| **FPS** | 43.38 | 36.2626 |
-| **Total Inference Time (s)** | 546.49 | 1533.4805 |
-| **VRAM Usage (MB)** | 115.76 | 115.7598 |
-| **Model Size (MB)** | 98.70 | 98.6982 |
-| **CS@5%** | 57.00% | 54.6130% |
-| **CS@10%** | 85.77% | 73.1365% |
-| **MAE / Model Size** | 0.0559 | 0.0804 |
-| **FPS / Model Size** | 0.4395 | 0.3674 |
-| **Efficiency (FPS / MAE)** | 7.8573 | 4.5698 |
+| MAE | 5.5213 | 5.4396 |
+| RMSE | 7.3823 | 6.7058 |
+| FPS | 42.2834 | 39.8943 |
+| Total Inference Time | 560.6927 | 1393.8835 |
+| VRAM (MB) | 115.7598 | 115.7598 |
+| Model Size (MB) | 98.6982 | 98.6982 |
+| CS5% | 57.0006 | 52.5104 |
+| CS10% | 85.7709 | 87.4317 |
+| MAE/Model Size (MB) | 0.0559 | 0.0551 |
+| FPS/Model Size (MB) | 0.4284 | 0.4042 |
+| Efficiency (FPS/MAE) | 7.6583 | 7.3341 |
 
 ## MiVOLO_d1 model (face-only)(age and gender): Dataset (train and test)=UTK (model_utk_age_gender_4.23_97.69.pth.tar) 
 
-| Metric | UTK dataset | MORPH2 dataset |
+| Metrics | UTK dataset | MORPH2 dataset |
 |----------|-------------:|-------------:|
 | **MAE** | 8.0969 | 5.9691 |
 | **RMSE** | 11.9888 | 7.4453 |
@@ -55,7 +55,7 @@
 
 ## MiVOLO_d1 model (face-only)(age and gender): Dataset (train and test)=IMDB (model_imdb_age_gender_4.22.pth.tar)
 
-| Metric | UTK dataset | MORPH2 dataset |
+| Metrics | UTK dataset | MORPH2 dataset |
 |----------|-------------:|-------------:|
 | **MAE** | 5.3264 | 4.8585 |
 | **RMSE** | 7.1814 | 6.0910 |

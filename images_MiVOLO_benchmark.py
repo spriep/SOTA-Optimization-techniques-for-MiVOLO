@@ -14,7 +14,7 @@ DATASET_CONFIG = {
         "dataset_path": os.path.join(BASE_DIR, "images_datasets", "CD2", "Album2"),
         #"dataset_path": r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\prueba\morph",
         "gt_path": os.path.join(BASE_DIR, "images_datasets", "CD2", "MORPH_Album2_comp.csv"),
-        "inference_path": os.path.join(BASE_DIR, "images_datasets", "MORPH_MiVOLO_RESULTS_onlyface_v2.json"), 
+        "inference_path": os.path.join(BASE_DIR, "images_datasets", "MORPH_MiVOLO_RESULTS_onlyface_v3.json"), 
         "type": "csv",
         "key_column": "photo"
     },
@@ -22,7 +22,7 @@ DATASET_CONFIG = {
         "dataset_path": os.path.join(BASE_DIR, "images_datasets", "UTKFace"), 
         #"dataset_path": r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\prueba\utk",
         "gt_path": os.path.join(BASE_DIR, "images_datasets", "UTK_face_groundtruth.json"),      
-        "inference_path": os.path.join(BASE_DIR, "images_datasets", "UTK_MiVOLO_RESULTS_onlyface_v2.json"),
+        "inference_path": os.path.join(BASE_DIR, "images_datasets", "UTK_MiVOLO_RESULTS_onlyface_v3.json"),
         "type": "json",
         "id_extractor": lambda filename: filename # El nombre es el ID directo
     }

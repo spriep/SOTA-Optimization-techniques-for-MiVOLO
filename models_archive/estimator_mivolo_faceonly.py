@@ -104,4 +104,11 @@ class MiVOLOAgeEstimator(BaseEstimator):
             # Post-procesing
             raw_age = output[0, 2].item() if output.shape[1] > 1 else output[0, 0].item()
             predicted_age = raw_age * (self.max_age - self.min_age) + self.avg_age
-            return round(max(0.0, predicted_age), 1)
+
+            gender_output = output[:, :2].softmax(-1)
+
+            gender_probs, gender_indx = gender_output.topk(1)
+            predicted_gender = "male" if gender_indx.item() == 0 else "female"
+            gender_score = gender_probs.item()
+
+            return round(max(0.0, predicted_age), 1), predicted_gender, round(float(gender_score),1)

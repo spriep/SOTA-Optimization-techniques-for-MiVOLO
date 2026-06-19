@@ -19,18 +19,36 @@
  <br>    9.1. To implement this changes its necessary to have the official repositories dowloaded on the projects folder
 10. Made a just MiVOLO (only_face) pipeline and a benchmark with new metrics (RMSE, CS5%, CS10%,MAE/Model_size,FPS/MB, FPS/MAE) to test UTKFace datatset
    
-## 📊 MiVOLO (just_face) UTKFace Results
+## 📊 MiVOLO with 
 
-| Metric | Value |
+| Metric | MiVOLO (just_face) UTKFace | MiVOLO (just_face) MORPH 2 |
+|----------|----------:|----------:|
+| **MAE** | 5.5213 | 7.9352 |
+| **RMSE** | 7.3823 | 11.7037 |
+| **FPS** | 43.38 | 36.2626 |
+| **Total Inference Time (s)** | 546.49 | 1533.4805 |
+| **VRAM Usage (MB)** | 115.76 | 115.7598 |
+| **Model Size (MB)** | 98.70 | 98.6982 |
+| **CS@5%** | 57.00% | 54.6130% |
+| **CS@10%** | 85.77% | 73.1365% |
+| **MAE / Model Size** | 0.0559 | 0.0804 |
+| **FPS / Model Size** | 0.4395 | 0.3674 |
+| **Efficiency (FPS / MAE)** | 7.8573 | 4.5698 |
+
+## MiVOLO with model_utk_age_gender_4.23_97.69.pth.tar Weights
+
+| Metric | UTK |
 |----------|----------:|
-| **MAE** | 5.5213 |
-| **RMSE** | 7.3823 |
-| **FPS** | 43.38 |
-| **Total Inference Time (s)** | 546.49 |
-| **VRAM Usage (MB)** | 115.76 |
-| **Model Size (MB)** | 98.70 |
-| **CS@5%** | 57.00% |
-| **CS@10%** | 85.77% |
-| **MAE / Model Size** | 0.0559 |
-| **FPS / Model Size** | 0.4395 |
-| **Efficiency (FPS / MAE)** | 7.8573 |
+| **MAE** | 8.0969 |
+| **RMSE** | 11.9888 |
+| **FPS** | 38.1547 |
+| **Total Inference Time (s)** | 621.3652 |
+| **VRAM Usage (MB)** | 115.7656 |
+| **Model Size (MB)** | 98.7041 |
+| **CS@5%** | 54.1574% |
+| **CS@10%** | 72.9129% |
+| **MAE / Model Size** | 0.0820 |
+| **FPS / Model Size** | 0.3866 |
+| **Efficiency (FPS / MAE)** | 4.7122 |
+| **Gender Accuracy** | 90.95% |
+| **Confusion Matrix** | `[[10645, 1746], [399, 10915]]` |

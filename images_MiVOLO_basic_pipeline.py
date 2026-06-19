@@ -5,14 +5,13 @@ from models_archive.estimator_mivolo_faceonly import MiVOLOAgeEstimator
 import json
 import time
 
-# Configuración
+# Configuration
 MODEL_CONFIG = {
     "age": {
         # "path": "weights/model_imdb_cross_person_4.22_99.46.pth.tar", #for official test with face+body (results prcessed_data/resultado_100_ofoocial.jpg)
         "path": "weights/model_only_age_imdb_4.29.pth.tar",
+        #"path" : "weights/model_age_utk_4.23.pth.tar",
         "class": MiVOLOAgeEstimator
-        #"path":  "weights/mobilenet_v3_ordinal_age.pth", # If we have pretrained weights its path should be written here
-        #"class": MobileNetAgeEstimator
     }
 }
 def print_pipeline_status(config, device):

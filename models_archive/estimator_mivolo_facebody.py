@@ -54,11 +54,11 @@ class MiVOLOAgeEstimator(BaseEstimator):
 
     
     def estimate(self, frame, face_box, body_box):
-        # 1. Recorte simple (sin resize ni padding complejo, solo el crop del array)
+        # cropping the frame with the face_box
         def crop_img(f, box):
             x1, y1, x2, y2 = [int(v) for v in box]
             h, w = f.shape[:2]
-            # Asegurar límites dentro del frame
+            # making sure limits are within the frame
             x1, y1, x2, y2 = max(0, x1), max(0, y1), min(w, x2), min(h, y2)
             return f[y1:y2, x1:x2]
 
@@ -68,23 +68,22 @@ class MiVOLOAgeEstimator(BaseEstimator):
         if face_crop.size == 0 or body_crop.size == 0:
             return None
 
-        # 2. Usar las herramientas nativas de MiVOLO para preparar la imagen
-        # Obtenemos mean/std del wrapper que inicializaste en __init__
+        # Use MiVOLO's native tools to prepare the image
         mean = self.mivolo_wrapper.data_config["mean"]
         std = self.mivolo_wrapper.data_config["std"]
-        input_size = self.mivolo_wrapper.input_size # Esto lee el tamaño del checkpoint
+        input_size = self.mivolo_wrapper.input_size 
 
-        # prepare_classification_images hace el resize (bicubic), normalización yToTensor
+        # prepare_classification_images performs resizing (bicubic), normalization, and ToTensor
         tensor_face = prepare_classification_images([face_crop], input_size, mean, std, device=self.device)
         tensor_body = prepare_classification_images([body_crop], input_size, mean, std, device=self.device)
         
-        # 3. Inferencia
+        # 3. Inference
         with torch.no_grad():
-            # MiVOLO concatena la cara y el cuerpo en la dimensión 1 (canales)
+            # MiVOLO concatenate the face and body in dimension 1 (channels)
             model_input = torch.cat([tensor_face, tensor_body], dim=1)
             output = self.model(model_input)
             
-            # Post-procesamiento igual que antes
+            # Post-procesing
             raw_age = output[0, 2].item() if output.shape[1] > 1 else output[0, 0].item()
             predicted_age = raw_age * (self.max_age - self.min_age) + self.avg_age
             return round(max(0.0, predicted_age), 1)

@@ -6,8 +6,9 @@ import torch
 from images_MiVOLO_basic_pipeline import process_images_folder, MODEL_CONFIG
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATASET = os.path.join(BASE_DIR, "images_datasets", "UTKFace")
-#DATASET = r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\prueba"
+DATASET = os.path.join(BASE_DIR, "images_datasets", "CD2", "Album2")
+#DATASET = os.path.join(BASE_DIR, "images_datasets", "UTKFace")
+#DATASET = r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\prueba\morph"
 GROUNDTRUTH = os.path.join(BASE_DIR, "images_datasets", "UTK_face_groundtruth.json")
 INFERENCE_RESULTS = os.path.join(BASE_DIR, "images_datasets", "UTK_MiVOLO_RESULTS_onlyface_basic.json")
 
@@ -17,11 +18,17 @@ INFERENCE_RESULTS = os.path.join(BASE_DIR, "images_datasets", "UTK_MiVOLO_RESULT
 
 total_time, vram_peak, num_files = process_images_folder(DATASET, save_photo=False)
 
+ext = os.path.splitext(GROUNDTRUTH)[1].lower()
+if ext == '.json':
+    with open(GROUNDTRUTH, 'r') as f:
+        gt = json.load(f)
+elif ext == '.csv':
+    df = pd.read_csv(GROUNDTRUTH)
+    gt = df.set_index('id_num')['age'].to_dict()
+
 with open(INFERENCE_RESULTS, 'r') as f:
         results = json.load(f)
 
-with open(GROUNDTRUTH, 'r') as f:
-    gt = json.load(f)
 
 data = []
 for filename, val in results.items():

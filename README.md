@@ -35,20 +35,39 @@
 | **FPS / Model Size** | 0.4395 | 0.3674 |
 | **Efficiency (FPS / MAE)** | 7.8573 | 4.5698 |
 
-## MiVOLO with model_utk_age_gender_4.23_97.69.pth.tar Weights
+## MiVOLO_d1 model (face-only)(age and gender): Dataset (train and test)=UTK (model_utk_age_gender_4.23_97.69.pth.tar) 
 
-| Metric | UTK |
-|----------|----------:|
-| **MAE** | 8.0969 |
-| **RMSE** | 11.9888 |
-| **FPS** | 38.1547 |
-| **Total Inference Time (s)** | 621.3652 |
-| **VRAM Usage (MB)** | 115.7656 |
-| **Model Size (MB)** | 98.7041 |
-| **CS@5%** | 54.1574% |
-| **CS@10%** | 72.9129% |
-| **MAE / Model Size** | 0.0820 |
-| **FPS / Model Size** | 0.3866 |
-| **Efficiency (FPS / MAE)** | 4.7122 |
-| **Gender Accuracy** | 90.95% |
-| **Confusion Matrix** | `[[10645, 1746], [399, 10915]]` |
+| Metric | UTK dataset | MORPH2 dataset |
+|----------|-------------:|-------------:|
+| **MAE** | 8.0969 | 5.9691 |
+| **RMSE** | 11.9888 | 7.4453 |
+| **FPS** | 38.1547 | 36.6369 |
+| **Total Inference Time (s)** | 621.3652 | 1517.8137 |
+| **VRAM Usage (MB)** | 115.7656 | 115.7656 |
+| **Model Size (MB)** | 98.7041 | 98.7041 |
+| **CS@5%** | 54.1574% | 47.5453% |
+| **CS@10%** | 72.9129% | 85.7017% |
+| **MAE / Model Size** | 0.0820 | 0.0605 |
+| **FPS / Model Size** | 0.3866 | 0.3712 |
+| **Efficiency (FPS / MAE)** | 4.7122 | 6.1377 |
+| **Gender Accuracy** | 90.95% | 96.45% |
+| **Confusion Matrix** | `[[10645, 1746], [399, 10915]]` | `[[46755, 302], [1674, 6877]]` |
+
+## MiVOLO_d1 model (face-only)(age and gender): Dataset (train and test)=IMDB (model_imdb_age_gender_4.22.pth.tar)
+
+| Metric | UTK dataset | MORPH2 dataset |
+|----------|-------------:|-------------:|
+| **MAE** | 5.3264 | 4.8585 |
+| **RMSE** | 7.1814 | 6.0910 |
+| **FPS** | 37.5479 | 36.5473 |
+| **Total Inference Time (s)** | 631.4068 | 1521.5342 |
+| **VRAM Usage (MB)** | 115.7656 | 115.7656 |
+| **Model Size (MB)** | 98.7041 | 98.7041 |
+| **CS@5%** | 59.2027% | 59.2649% |
+| **CS@10%** | 86.5387% | 90.9869% |
+| **MAE / Model Size** | 0.0540 | 0.0492 |
+| **FPS / Model Size** | 0.3804 | 0.3703 |
+| **Efficiency (FPS / MAE)** | 7.0494 | 7.5223 |
+| **Gender Accuracy** | 92.13% | 97.10% |
+| **Confusion Matrix** | `[[11190, 1201], [664, 10650]]` | `[[46829, 228], [1387, 7164]]` |
+

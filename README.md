@@ -18,56 +18,63 @@
 9. Changing the resize from MiVOLO and RetinaFace. Now the resizing is done with the model's own methods and its implemented as a function from the detector/estimator class
  <br>    9.1. To implement this changes its necessary to have the official repositories dowloaded on the projects folder
 10. Made a just MiVOLO (only_face) pipeline and a benchmark with new metrics (RMSE, CS5%, CS10%,MAE/Model_size,FPS/MB, FPS/MAE) to test UTKFace datatset
-   
+
+
+# 10 ITERATIONS
+
 ## MiVOLO with iVOLO_d1 model (face-only)(age only): Dataset (train and test)=UTK (weights/model_only_age_imdb_4.29.pth.tar)
 
-| Metrics | UTK dataset | MORPH2 dataset |
-|----------|----------:|----------:|
-| MAE | 5.5213 | 5.4396 |
-| RMSE | 7.3823 | 6.7058 |
-| FPS | 42.2834 | 39.8943 |
-| Total Inference Time | 560.6927 | 1393.8835 |
-| VRAM (MB) | 115.7598 | 115.7598 |
-| Model Size (MB) | 98.6982 | 98.6982 |
-| CS5% | 57.0006 | 52.5104 |
-| CS10% | 85.7709 | 87.4317 |
-| MAE/Model Size (MB) | 0.0559 | 0.0551 |
-| FPS/Model Size (MB) | 0.4284 | 0.4042 |
-| Efficiency (FPS/MAE) | 7.6583 | 7.3341 |
+| Métrica | Iteración Anterior | Nuevos Datos |
+| :--- | :--- | :--- |
+| MAE | 5.521270 | 4.902143 |
+| RMSE | 7.382272 | 6.047474 |
+| Latency | 0.024243 | 0.023737 |
+| FPS | 41.263687 | 42.144096 |
+| Total Inference Time | 574.762815 | 1303.957623 |
+| VRAM (MB) | 115.759766 | 115.759766 |
+| Model Size (MB) | 98.698225 | 98.698225 |
+| CS5% | 57.000633 | 57.600029 |
+| CS10% | 85.770934 | 91.205811 |
+| MAE/Model_size(MB) | 0.055941 | 0.049668 |
+| FPS//Model_size(MB) | 0.418079 | 0.427000 |
+| Efficiency (FPS/MAE) | 7.473586 | 8.597077 |
 
 ## MiVOLO_d1 model (face-only)(age and gender): Dataset (train and test)=UTK (model_utk_age_gender_4.23_97.69.pth.tar) 
 
-| Metrics | UTK dataset | MORPH2 dataset |
-|----------|-------------:|-------------:|
-| **MAE** | 8.0969 | 5.9691 |
-| **RMSE** | 11.9888 | 7.4453 |
-| **FPS** | 38.1547 | 36.6369 |
-| **Total Inference Time (s)** | 621.3652 | 1517.8137 |
-| **VRAM Usage (MB)** | 115.7656 | 115.7656 |
-| **Model Size (MB)** | 98.7041 | 98.7041 |
-| **CS@5%** | 54.1574% | 47.5453% |
-| **CS@10%** | 72.9129% | 85.7017% |
-| **MAE / Model Size** | 0.0820 | 0.0605 |
-| **FPS / Model Size** | 0.3866 | 0.3712 |
-| **Efficiency (FPS / MAE)** | 4.7122 | 6.1377 |
-| **Gender Accuracy** | 90.95% | 96.45% |
-| **Confusion Matrix** | `[[10645, 1746], [399, 10915]]` | `[[46755, 302], [1674, 6877]]` |
+| Métrica | UTKFace | MORPH2 |
+| :--- | :--- | :--- |
+| MAE | 8.096925 | 5.403075 |
+| RMSE | 11.988824 | 6.554478 |
+| Latency | 0.023397 | 0.023913 |
+| FPS | 42.741606 | 41.825229 |
+| Total Inference Time | 554.692182 | 1313.641493 |
+| VRAM (MB) | 115.765625 | 115.765625 |
+| Model Size (MB) | 98.704100 | 98.704100 |
+| CS5% | 54.157351 | 51.006663 |
+| CS10% | 72.912888 | 89.825973 |
+| MAE/Model_size(MB) | 0.082032 | 0.054740 |
+| FPS//Model_size(MB) | 0.433028 | 0.423744 |
+| Efficiency (FPS/MAE) | 5.278746 | 7.741005 |
+| Gender accuracy | 90.951276 | 97.236684 |
+| **Confusion Matrix** | <table><tr><td></td><td>Pred:M</td><td>Pred:F</td></tr><tr><td>Act:M</td><td>10645</td><td>1746</td></tr><tr><td>Act:F</td><td>399</td><td>10915</td></tr></table> | <table><tr><td></td><td>Pred:M</td><td>Pred:F</td></tr><tr><td>Act:M</td><td>45823</td><td>624</td></tr><tr><td>Act:F</td><td>894</td><td>7593</td></tr></table> |
+
 
 ## MiVOLO_d1 model (face-only)(age and gender): Dataset (train and test)=IMDB (model_imdb_age_gender_4.22.pth.tar)
+### AVERAGE RESULTS ACROSS ITERATIONS
 
-| Metrics | UTK dataset | MORPH2 dataset |
-|----------|-------------:|-------------:|
-| **MAE** | 5.3264 | 4.8585 |
-| **RMSE** | 7.1814 | 6.0910 |
-| **FPS** | 37.5479 | 36.5473 |
-| **Total Inference Time (s)** | 631.4068 | 1521.5342 |
-| **VRAM Usage (MB)** | 115.7656 | 115.7656 |
-| **Model Size (MB)** | 98.7041 | 98.7041 |
-| **CS@5%** | 59.2027% | 59.2649% |
-| **CS@10%** | 86.5387% | 90.9869% |
-| **MAE / Model Size** | 0.0540 | 0.0492 |
-| **FPS / Model Size** | 0.3804 | 0.3703 |
-| **Efficiency (FPS / MAE)** | 7.0494 | 7.5223 |
-| **Gender Accuracy** | 92.13% | 97.10% |
-| **Confusion Matrix** | `[[11190, 1201], [664, 10650]]` | `[[46829, 228], [1387, 7164]]` |
-
+| Métrica | UTKFace | MORPH2 |
+| :--- | :--- | :--- |
+| MAE | 5.326399 | 4.459522 |
+| RMSE | 7.181425 | 5.595075 |
+| Latency | 0.024123 | 0.023907 |
+| FPS | 41.464398 | 41.835592 |
+| Total Inference Time | 571.911393 | 1313.285585 |
+| VRAM (MB) | 115.765625 | 115.765625 |
+| Model Size (MB) | 98.704100 | 98.704100 |
+| CS5% | 59.202700 | 63.408818 |
+| CS10% | 86.538705 | 93.326537 |
+| MAE/Model_size(MB) | 0.053963 | 0.045181 |
+| FPS//Model_size(MB) | 0.420088 | 0.423849 |
+| Efficiency (FPS/MAE) | 7.784695 | 9.381182 |
+| Gender accuracy | 92.132462 | 97.284014 |
+| **Confusion Matrix** | <table><tr><td></td><td>Pred:M</td><td>Pred:F</td></tr><tr><td>Act:M</td><td>11190.0</td><td>1201.0</td></tr><tr><td>Act:F</td><td>664.0</td><td>10650.0</td></tr></table> | <table><tr><td></td><td>Pred:M</td><td>Pred:F</td></tr><tr><td>Act:M</td><td>46358.0</td><td>89.0</td></tr><tr><td>Act:F</td><td>1403.0</td><td>7084.0</td></tr></table> |

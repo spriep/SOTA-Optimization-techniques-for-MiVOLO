@@ -43,6 +43,7 @@ class MiVOLOAgeEstimator(BaseEstimator):
         ) 
         # Extracting the mathematical model for inference
         self.model = self.mivolo_wrapper.model
+        print(next(self.model.parameters()).dtype)
         self.model.eval()
 
         # Standard normalization of ImageNet for the Transformers 

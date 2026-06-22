@@ -8,3 +8,4 @@ __pycache__/
 *.pyc
 Real_Age_Faces_Dataset/
 images_datasets/
+inference_outcomes_and_benchmark_log/

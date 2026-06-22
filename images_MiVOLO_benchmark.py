@@ -14,7 +14,7 @@ DATASET_CONFIG = {
         "dataset_path": os.path.join(BASE_DIR, "images_datasets", "MORPH2", "Processed_MORPH2"),
         #"dataset_path": r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\prueba\morph",
         "gt_path": os.path.join(BASE_DIR, "images_datasets", "MORPH2", "MORPH_Album2_comp.csv"),
-        "inference_path": os.path.join(BASE_DIR, "images_datasets", "MORPH_MiVOLO_RESULTS_onlyface_v3.json"), 
+        "inference_path": os.path.join(BASE_DIR, "inference_outcomes_and_benchmark_log", "prueba_utk_quant_16.json"), 
         "type": "csv",
         "key_column": "photo"
     },
@@ -22,7 +22,7 @@ DATASET_CONFIG = {
         "dataset_path": os.path.join(BASE_DIR, "images_datasets", "UTKFace"), 
         #"dataset_path": r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\prueba\utk",
         "gt_path": os.path.join(BASE_DIR, "images_datasets", "UTK_face_groundtruth.json"),      
-        "inference_path": os.path.join(BASE_DIR, "images_datasets", "UTK_MiVOLO_RESULTS_onlyface_v3.json"),
+        "inference_path": os.path.join(BASE_DIR, "images_datasets", "prueba_utk_quant_16.json"),
         "type": "json",
         "id_extractor": lambda filename: filename # El nombre es el ID directo
     }
@@ -32,11 +32,11 @@ DATASET_CONFIG = {
 #BASELINE_MAE = 
 #BASELINE_MODEL_SIZE = 
 
-CURRENT_DS = "morph" 
+CURRENT_DS = "utk" 
 cfg = DATASET_CONFIG[CURRENT_DS]
 
-NUM_ITERATIONS = 10
-LOG_FILE = "benchmark_log_morph_v3.jsonl"
+NUM_ITERATIONS = 1
+LOG_FILE = "prueba_quant_utk_16.jsonl"
 
 def run_benchmark_iteration():
 

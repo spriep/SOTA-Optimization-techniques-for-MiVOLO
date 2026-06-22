@@ -6,6 +6,7 @@ import torchvision.transforms as transforms
 from models_archive.base_model import BaseEstimator
 from torchvision.transforms import InterpolationMode
 from mivolo.data.misc import prepare_classification_images
+import onnxruntime as ort
 
 
 
@@ -24,27 +25,42 @@ except ImportError as e:
     sys.exit(1)
 
 class MiVOLOAgeEstimator(BaseEstimator):
-    def __init__(self, weights_path, device):
+    def __init__(self, weights_path, device, quant_type=None):
         self.device = device
+        self.quant_type = quant_type
+
 
         print("[*] Extracting normalization variables from the file...")
-        ckpt = torch.load(weights_path, map_location="cpu")
+        ckpt = torch.load(weights_path, map_location="cpu", weights_only=False)
         self.min_age = float(ckpt['min_age'])
         self.max_age = float(ckpt['max_age'])
         self.avg_age = float(ckpt['avg_age'])
 
         print(f"[*] Initialising MiVOLO (Vision Transformer) on {str(self.device).upper()}...")
+
         # Initialize the official wrapper for MiVOLO (Constructs the architecture + load the weights + prepares the onlyface mode)
         # The class constructs the transformer and load the weights
         self.mivolo_wrapper = MiVOLO(
             weights_path, 
             device=str(self.device),
-            half=False # False --> half precisión (FP16) ; True --> full precisión (FP32) ----------------------------------------------------
+            half = True if self.quant_type == 'dynamicPTQfp16' else False # True --> half precisión (FP16) ; False --> full precisión (FP32) ----------------------------------------------------
         ) 
         # Extracting the mathematical model for inference
         self.model = self.mivolo_wrapper.model
-        print(next(self.model.parameters()).dtype)
         self.model.eval()
+
+        if self.quant_type == 'dynamicPTQfp16':
+            print("[*] Applying FP16 (Half Precision)...")
+
+        elif self.quant_type is not None:
+            print(f"[!] Notice: The quantization mode '{self.quant_type}' is not supported.")
+        
+        self.model.to(self.device)
+        try:
+            print(f"[*] Precisión de pesos DESPUÉS: {self.model.network[0][0].attn.v.weight.dtype}")
+        except:
+            print("[*] Precisión de pesos DESPUÉS: Modelo cuantizado (INT8/Packed)")
+
 
         # Standard normalization of ImageNet for the Transformers 
         self.transform = transforms.Compose([
@@ -96,20 +112,23 @@ class MiVOLOAgeEstimator(BaseEstimator):
 
         # prepare_classification_images performs resizing (bicubic), normalization, and ToTensor
         tensor_face = prepare_classification_images([face_crop], input_size, mean, std, device=self.device)
-        
-        # 3. Inferencia
-        with torch.no_grad():
-            # HERE MiVOLO COULD concatenate the face and body in dimension 1 (channels)
-            output = self.model(tensor_face)
-            
-            # Post-procesing
-            raw_age = output[0, 2].item() if output.shape[1] > 1 else output[0, 0].item()
-            predicted_age = raw_age * (self.max_age - self.min_age) + self.avg_age
+        if self.quant_type == 'dynamicPTQfp16':
+            tensor_face = tensor_face.half()
+            with torch.no_grad():
+                output = self.model(tensor_face)
+        else: 
+            with torch.no_grad():
+                # HERE MiVOLO COULD concatenate the face and body in dimension 1 (channels)
+                output = self.model(tensor_face)
+                
+        # Post-procesing
+        raw_age = output[0, 2].item() if output.shape[1] > 1 else output[0, 0].item()
+        predicted_age = raw_age * (self.max_age - self.min_age) + self.avg_age
 
-            gender_output = output[:, :2].softmax(-1)
+        gender_output = output[:, :2].softmax(-1)
 
-            gender_probs, gender_indx = gender_output.topk(1)
-            predicted_gender = "male" if gender_indx.item() == 0 else "female"
-            gender_score = gender_probs.item()
+        gender_probs, gender_indx = gender_output.topk(1)
+        predicted_gender = "male" if gender_indx.item() == 0 else "female"
+        gender_score = gender_probs.item()
 
-            return round(max(0.0, predicted_age), 1), predicted_gender, round(float(gender_score),1)
+        return round(max(0.0, predicted_age), 1), predicted_gender, round(float(gender_score),1)

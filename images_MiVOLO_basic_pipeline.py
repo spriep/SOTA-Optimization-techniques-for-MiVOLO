@@ -9,16 +9,16 @@ import time
 MODEL_CONFIG = {
     "age": {
         # "path": "weights/model_imdb_cross_person_4.22_99.46.pth.tar", #for official test with face+body (results prcessed_data/resultado_100_ofoocial.jpg)
-        "path": "weights/model_only_age_imdb_4.29.pth.tar",
+        #"path": "weights/model_only_age_imdb_4.29.pth.tar",
         #"path" : "weights/model_utk_age_gender_4.23_97.69.pth.tar",
         #"path" : "weights/model_age_utk_4.23.pth.tar",
-        #"path" : "weights/model_imdb_age_gender_4.22.pth.tar",
+        "path" : "weights/model_imdb_age_gender_4.22.pth.tar",
         "class": MiVOLOAgeEstimator
     }
 }
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 #OUTPUTH_JSON_PATH = os.path.join(BASE_DIR, "images_datasets","UTK_MiVOLO_RESULTS_onlyface_v3.json")
-OUTPUTH_JSON_PATH = os.path.join(BASE_DIR, "images_datasets","MORPH_MiVOLO_RESULTS_onlyface_v3.json")
+OUTPUTH_JSON_PATH = os.path.join(BASE_DIR, "images_datasets","MORPH_MiVOLO_RESULTS_prueba_quant.json")
 
 def print_pipeline_status(config, device):
     print("\n" + "="*40)
@@ -97,4 +97,4 @@ def process_images_folder(folder_path, save_photo=False):
     return total_inference_time, vram_peak, len(files)
 
 if __name__ == "__main__":
-    process_images_folder(r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\UTKFace")
+    process_images_folder(r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\prueba\morph")

@@ -24,13 +24,13 @@
 
 ## MiVOLO with iVOLO_d1 model (face-only)(age only): Dataset (train and test)=UTK (weights/model_only_age_imdb_4.29.pth.tar)
 
-| Métrica | Iteración Anterior | Nuevos Datos |
+| Metrics | Iteración Anterior | Nuevos Datos |
 | :--- | :--- | :--- |
 | MAE | 5.521270 | 4.902143 |
 | RMSE | 7.382272 | 6.047474 |
-| Latency | 0.024243 | 0.023737 |
+| Latency (s) | 0.024243 | 0.023737 |
 | FPS | 41.263687 | 42.144096 |
-| Total Inference Time | 574.762815 | 1303.957623 |
+| Total Inference Time (s) | 574.762815 | 1303.957623 |
 | VRAM (MB) | 115.759766 | 115.759766 |
 | Model Size (MB) | 98.698225 | 98.698225 |
 | CS5% | 57.000633 | 57.600029 |
@@ -41,13 +41,13 @@
 
 ## MiVOLO_d1 model (face-only)(age and gender): Dataset (train and test)=UTK (model_utk_age_gender_4.23_97.69.pth.tar) 
 
-| Métrica | UTKFace | MORPH2 |
+| Metrics | UTKFace | MORPH2 |
 | :--- | :--- | :--- |
 | MAE | 8.096925 | 5.403075 |
 | RMSE | 11.988824 | 6.554478 |
-| Latency | 0.023397 | 0.023913 |
+| Latency (s) | 0.023397 | 0.023913 |
 | FPS | 42.741606 | 41.825229 |
-| Total Inference Time | 554.692182 | 1313.641493 |
+| Total Inference Time (s) | 554.692182 | 1313.641493 |
 | VRAM (MB) | 115.765625 | 115.765625 |
 | Model Size (MB) | 98.704100 | 98.704100 |
 | CS5% | 54.157351 | 51.006663 |
@@ -60,15 +60,14 @@
 
 
 ## MiVOLO_d1 model (face-only)(age and gender): Dataset (train and test)=IMDB (model_imdb_age_gender_4.22.pth.tar)
-### AVERAGE RESULTS ACROSS ITERATIONS
 
-| Métrica | UTKFace | MORPH2 |
+| Metrics | UTKFace | MORPH2 |
 | :--- | :--- | :--- |
 | MAE | 5.326399 | 4.459522 |
 | RMSE | 7.181425 | 5.595075 |
-| Latency | 0.024123 | 0.023907 |
+| Latency (s) | 0.024123 | 0.023907 |
 | FPS | 41.464398 | 41.835592 |
-| Total Inference Time | 571.911393 | 1313.285585 |
+| Total Inference Time (s) | 571.911393 | 1313.285585 |
 | VRAM (MB) | 115.765625 | 115.765625 |
 | Model Size (MB) | 98.704100 | 98.704100 |
 | CS5% | 59.202700 | 63.408818 |
@@ -78,3 +77,8 @@
 | Efficiency (FPS/MAE) | 7.784695 | 9.381182 |
 | Gender accuracy | 92.132462 | 97.284014 |
 | **Confusion Matrix** | <table><tr><td></td><td>Pred:M</td><td>Pred:F</td></tr><tr><td>Act:M</td><td>11190.0</td><td>1201.0</td></tr><tr><td>Act:F</td><td>664.0</td><td>10650.0</td></tr></table> | <table><tr><td></td><td>Pred:M</td><td>Pred:F</td></tr><tr><td>Act:M</td><td>46358.0</td><td>89.0</td></tr><tr><td>Act:F</td><td>1403.0</td><td>7084.0</td></tr></table> |
+
+##Phase 1 finalished
+- Work missing for now that needs to be implemented in the future but its not crucial
+-- Adding an exportation to the benchmark metrics
+-- Adding gender estimation to the video pipelines

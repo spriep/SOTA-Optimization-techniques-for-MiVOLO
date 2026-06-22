@@ -1,3 +1,5 @@
+#AHORA EL ESTIMATOR TAMBINE DEVULEVE LA INFERENCIA DEL GENERO FALTA POR IMPLEMENTAR
+#predicted_age, predicted_gender, gender_score = estimator.estimate(frame, face_box)
 import json
 import os
 import torch

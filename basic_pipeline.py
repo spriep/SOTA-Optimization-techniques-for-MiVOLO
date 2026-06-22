@@ -1,8 +1,10 @@
-import cv2
+#AHORA EL ESTIMATOR TAMBINE DEVULEVE LA INFERENCIA DEL GENERO FALTA POR IMPLEMENTAR
+#predicted_age, predicted_gender, gender_score = estimator.estimate(frame, face_box)
 import torch
 import os
 from collections import deque
 import numpy as np
+import cv2
 
 
 # Importing our modular models (detectors and estimators)

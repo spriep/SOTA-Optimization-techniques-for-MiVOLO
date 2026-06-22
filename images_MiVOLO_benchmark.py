@@ -176,22 +176,3 @@ cm_df_avg = pd.DataFrame(
 )
 print(cm_df_avg)
 
-
-'''
-print("\n--- FINAL RESULTS ---")
-print(df_summary)
-
-gender_accuracy = df["is_correct"].mean() * 100
-
-print(f"\n--- GENDER METRICS  ---")
-print(f"Gender Accuracy: {gender_accuracy:.2f}%")
-cm = confusion_matrix(df["gt_gender"], df["pred_gender"], labels=["male", "female"])
-cm_df = pd.DataFrame(
-    cm, 
-    index=["Actual: Male", "Actual: Female"], 
-    columns=["Predicted: Male", "Predicted: Female"]
-)
-
-print("\nConfusion Matrix:")
-print(cm_df)
-'''

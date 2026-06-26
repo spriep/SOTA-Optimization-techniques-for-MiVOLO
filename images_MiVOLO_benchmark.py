@@ -22,7 +22,7 @@ DATASET_CONFIG = {
         "dataset_path": os.path.join(BASE_DIR, "images_datasets", "UTKFace"), 
         #"dataset_path": r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\prueba\utk",
         "gt_path": os.path.join(BASE_DIR, "images_datasets", "UTK_face_groundtruth.json"),      
-        "inference_path": os.path.join(BASE_DIR, "images_datasets", "prueba_utk_quant_16.json"),
+        "inference_path": os.path.join(BASE_DIR, "images_datasets", "prueba_torchao_utk.json"),
         "type": "json",
         "id_extractor": lambda filename: filename # El nombre es el ID directo
     }
@@ -36,7 +36,7 @@ CURRENT_DS = "utk"
 cfg = DATASET_CONFIG[CURRENT_DS]
 
 NUM_ITERATIONS = 1
-LOG_FILE = "prueba_quant_utk_16.jsonl"
+LOG_FILE = "prueba_torchao_utk.jsonl"
 
 def run_benchmark_iteration():
 

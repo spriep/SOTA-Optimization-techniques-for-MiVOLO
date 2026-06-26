@@ -6,9 +6,10 @@ import torchvision.transforms as transforms
 from models_archive.base_model import BaseEstimator
 from torchvision.transforms import InterpolationMode
 from mivolo.data.misc import prepare_classification_images
-import onnxruntime as ort
-
-
+from objects_archive.quant_utils import inspect_weights, QuantizedLinear, inspect_calibration_stats, verificar_cuantizacion
+from torch.nn import Linear
+from torchao.quantization import quantize_, Int8WeightOnlyConfig
+from torchao.quantization import Int8DynamicActivationInt8WeightConfig, MappingType, PerRow
 
 # mivolo folder path configuration for importing the MiVOLO model 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +24,15 @@ except ImportError as e:
     print("[!] FATAL ERROR: 'mivolo' folder not found in the project root.")
     print(e)
     sys.exit(1)
+
+def get_vram_usage(model):
+    """Calcula el tamaño real de los parámetros en VRAM."""
+    total_bytes = 0
+    for param in model.parameters():
+        # param.element_size() es 1 para int8 (cuantizado) y 4 para float32 (original)
+        total_bytes += param.numel() * param.element_size()
+    return total_bytes / (1024**2)
+
 
 class MiVOLOAgeEstimator(BaseEstimator):
     def __init__(self, weights_path, device, quant_type=None):
@@ -52,15 +62,45 @@ class MiVOLOAgeEstimator(BaseEstimator):
         if self.quant_type == 'dynamicPTQfp16':
             print("[*] Applying FP16 (Half Precision)...")
 
+        elif self.quant_type == 'dynamicPTQint8':
+            if torch.cuda.is_available():
+                print("[*] Aplicando cuantización INT8 con torchao en CUDA...")
+                # group_size=32 es el estándar para equilibrar precisión y velocidad
+                quantize_(self.model, Int8WeightOnlyConfig())
+                verificar_cuantizacion(self.model)
+                print("[*] Cuantización completada.")
+
+            self.model.eval()
+            
+        elif self.quant_type == 'torchao2':
+            print("[*] Aplicando cuantización dinámica INT8 (Act + Weights) con torchao...")
+            
+            # Definimos la configuración explícita según la API que proporcionaste
+            config = Int8DynamicActivationInt8WeightConfig(
+                act_mapping_type=MappingType.SYMMETRIC, # Recomendado para rendimiento
+                granularity=PerRow(dim=-1),             # Per-channel para mayor precisión
+                set_inductor_config=True                # Optimización automática para Inductor
+            )
+            
+            # Aplicamos la cuantización directamente
+            # Nota: Esto no requiere fase de calibración (observadores), 
+            # es dinámico (calcula escalas al vuelo).
+            quantize_(self.model, config)
+            
+            # Es altamente recomendable usar torch.compile para ver mejoras de velocidad
+            self.model = torch.compile(self.model)
+            
+            
+            print("[*] Modelo cuantizado dinámicamente y compilado con Inductor.")
+
+
         elif self.quant_type is not None:
             print(f"[!] Notice: The quantization mode '{self.quant_type}' is not supported.")
         
         self.model.to(self.device)
-        try:
-            print(f"[*] Precisión de pesos DESPUÉS: {self.model.network[0][0].attn.v.weight.dtype}")
-        except:
-            print("[*] Precisión de pesos DESPUÉS: Modelo cuantizado (INT8/Packed)")
 
+        vram_size = get_vram_usage(self.model)
+        print(f"Model size (VRAM real): {vram_size:.2f} MB")
 
         # Standard normalization of ImageNet for the Transformers 
         self.transform = transforms.Compose([
@@ -69,6 +109,8 @@ class MiVOLOAgeEstimator(BaseEstimator):
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
+    
+
     
     def _get_square_crop_with_padding(self, frame, x_min, y_min, x_max, y_max, margin=1.3):
         h, w = frame.shape[:2]
@@ -104,11 +146,12 @@ class MiVOLOAgeEstimator(BaseEstimator):
 
         if face_crop.size == 0:
             return None
-
         # Use MiVOLO's native tools to prepare the image
         mean = self.mivolo_wrapper.data_config["mean"]
         std = self.mivolo_wrapper.data_config["std"]
         input_size = self.mivolo_wrapper.input_size 
+        #capas_personalizadas = [m for m in self.model.modules() if isinstance(m, QuantizedLinear)]
+        #print(f"[*] DEBUG: Se han detectado {len(capas_personalizadas)} capas cuantizadas en el modelo actual.")
 
         # prepare_classification_images performs resizing (bicubic), normalization, and ToTensor
         tensor_face = prepare_classification_images([face_crop], input_size, mean, std, device=self.device)
@@ -117,9 +160,13 @@ class MiVOLOAgeEstimator(BaseEstimator):
             with torch.no_grad():
                 output = self.model(tensor_face)
         else: 
+            tensor_face = tensor_face.to(self.device).float()
             with torch.no_grad():
                 # HERE MiVOLO COULD concatenate the face and body in dimension 1 (channels)
                 output = self.model(tensor_face)
+        
+        print(f"DEBUG: Input dtype: {tensor_face.dtype}")
+        print(f"DEBUG: Model weight dtype (en la primera capa): {self.model.patch_embed.proj.weight.dtype}")
                 
         # Post-procesing
         raw_age = output[0, 2].item() if output.shape[1] > 1 else output[0, 0].item()

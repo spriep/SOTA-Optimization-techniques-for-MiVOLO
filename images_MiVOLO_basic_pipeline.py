@@ -2,6 +2,7 @@ import cv2
 import torch
 import os
 from models_archive.estimator_mivolo_faceonly import MiVOLOAgeEstimator
+from models_archive.estimator_mivolo_faceonly_onnx import MiVOLOOnnxEstimator
 import json
 import time
 
@@ -12,14 +13,16 @@ MODEL_CONFIG = {
         #"path": "weights/model_only_age_imdb_4.29.pth.tar",
         #"path" : "weights/model_utk_age_gender_4.23_97.69.pth.tar",
         #"path" : "weights/model_age_utk_4.23.pth.tar",
-        #"path" : "weights/model_imdb_age_gender_4.22.onnx",
         "path" : "weights/model_imdb_age_gender_4.22.pth.tar",
+        #"path" : r"C:\Users\saioa\Downloads\mivolo.onnx",
         "class": MiVOLOAgeEstimator,
-        "quant_type": "dynamicPTQfp16"
+        #"quant_type" : "dynamicPTQfp16"
+        "quant_type": "dynamicPTQint8"
+        #"quant_type": "torchao2"
     }
 }
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUTH_JSON_PATH = os.path.join(BASE_DIR, "images_datasets","prueba_utk_quant_16.json")
+OUTPUTH_JSON_PATH = os.path.join(BASE_DIR, "images_datasets","prueba_torchao_utk.json")
 #OUTPUTH_JSON_PATH = os.path.join(BASE_DIR, "inference_outcomes_and_benchmark_log","morph_prueba_quant_16.json")
 
 def print_pipeline_status(config, device):
@@ -31,8 +34,11 @@ def print_pipeline_status(config, device):
         print(f"[{model_name.upper():<6}] {info['class'].__name__:<20} | Modo: {q_mode}")
     print("="*40 + "\n")
 
+
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 estimator = MODEL_CONFIG["age"]["class"](weights_path=MODEL_CONFIG["age"]["path"], device=device, quant_type=MODEL_CONFIG["age"]["quant_type"])
+
 
 print_pipeline_status(MODEL_CONFIG, device)
 

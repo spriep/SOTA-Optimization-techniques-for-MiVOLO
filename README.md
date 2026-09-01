@@ -78,7 +78,7 @@
 | Gender accuracy | 92.132462 | 97.284014 |
 | **Confusion Matrix** | <table><tr><td></td><td>Pred:M</td><td>Pred:F</td></tr><tr><td>Act:M</td><td>11190.0</td><td>1201.0</td></tr><tr><td>Act:F</td><td>664.0</td><td>10650.0</td></tr></table> | <table><tr><td></td><td>Pred:M</td><td>Pred:F</td></tr><tr><td>Act:M</td><td>46358.0</td><td>89.0</td></tr><tr><td>Act:F</td><td>1403.0</td><td>7084.0</td></tr></table> |
 
-##Phase 1 finalished
+## Phase 1 finalished
 - Work missing for now that needs to be implemented in the future but its not crucial
 -- Adding an exportation to the benchmark metrics
 -- Adding gender estimation to the video pipelines

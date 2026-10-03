@@ -26,10 +26,10 @@ except ImportError as e:
     sys.exit(1)
 
 def get_vram_usage(model):
-    """Calcula el tamaño real de los parámetros en VRAM."""
+    """Calculate the actual size of the parameters in VRAM"""
     total_bytes = 0
     for param in model.parameters():
-        # param.element_size() es 1 para int8 (cuantizado) y 4 para float32 (original)
+        # param.element_size() 1 is for int8 (quantized) and 4 is for float32 (original)
         total_bytes += param.numel() * param.element_size()
     return total_bytes / (1024**2)
 
@@ -64,34 +64,35 @@ class MiVOLOAgeEstimator(BaseEstimator):
 
         elif self.quant_type == 'dynamicPTQint8':
             if torch.cuda.is_available():
-                print("[*] Aplicando cuantización INT8 con torchao en CUDA...")
-                # group_size=32 es el estándar para equilibrar precisión y velocidad
+                print("[*] Applying INT8 quantization with torchao on CUDA...")
                 quantize_(self.model, Int8WeightOnlyConfig())
+
+
                 verificar_cuantizacion(self.model)
-                print("[*] Cuantización completada.")
+                print("[*] Quantization complete.")
 
             self.model.eval()
             
         elif self.quant_type == 'torchao2':
-            print("[*] Aplicando cuantización dinámica INT8 (Act + Weights) con torchao...")
+            print("[*] Applying dynamic INT8 quantization (activations + weights) with torchao....")
+            torch._inductor.config.force_fuse_int_mm_addmm = True
+            torch.backends.cuda.matmul.allow_tf32 = False
             
-            # Definimos la configuración explícita según la API que proporcionaste
+            # We define the explicit configuration based on the API you provided
             config = Int8DynamicActivationInt8WeightConfig(
-                act_mapping_type=MappingType.SYMMETRIC, # Recomendado para rendimiento
-                granularity=PerRow(dim=-1),             # Per-channel para mayor precisión
-                set_inductor_config=True                # Optimización automática para Inductor
+                act_mapping_type=MappingType.SYMMETRIC, # Recommended for performance
+                granularity=PerRow(dim=-1),             # Per-channel for greater precision
+                set_inductor_config=True                # Automatic optimization for inductor
             )
             
-            # Aplicamos la cuantización directamente
-            # Nota: Esto no requiere fase de calibración (observadores), 
-            # es dinámico (calcula escalas al vuelo).
+            # We apply quantization directly
             quantize_(self.model, config)
             
-            # Es altamente recomendable usar torch.compile para ver mejoras de velocidad
+            # It is highly recommended to use torch.compile to see speed improvements.
             self.model = torch.compile(self.model)
             
             
-            print("[*] Modelo cuantizado dinámicamente y compilado con Inductor.")
+            print("[*] Dynamically quantized model compiled with Inductor")
 
 
         elif self.quant_type is not None:
@@ -165,8 +166,8 @@ class MiVOLOAgeEstimator(BaseEstimator):
                 # HERE MiVOLO COULD concatenate the face and body in dimension 1 (channels)
                 output = self.model(tensor_face)
         
-        print(f"DEBUG: Input dtype: {tensor_face.dtype}")
-        print(f"DEBUG: Model weight dtype (en la primera capa): {self.model.patch_embed.proj.weight.dtype}")
+        #print(f"DEBUG: Input dtype: {tensor_face.dtype}")
+        #print(f"DEBUG: Model weight dtype (en la primera capa): {self.model.patch_embed.proj.weight.dtype}")
                 
         # Post-procesing
         raw_age = output[0, 2].item() if output.shape[1] > 1 else output[0, 0].item()

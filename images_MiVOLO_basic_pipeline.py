@@ -2,6 +2,7 @@ import cv2
 import torch
 import os
 from models_archive.estimator_mivolo_faceonly import MiVOLOAgeEstimator
+from models_archive.destilled_estimator_mobilenetv3 import MobileNetAgeEstimator
 from models_archive.estimator_mivolo_faceonly_onnx import MiVOLOOnnxEstimator
 import json
 import time
@@ -9,20 +10,38 @@ import time
 # Configuration
 MODEL_CONFIG = {
     "age": {
-        # "path": "weights/model_imdb_cross_person_4.22_99.46.pth.tar", #for official test with face+body (results prcessed_data/resultado_100_ofoocial.jpg)
+        # BASELINE WEIGHTS
         #"path": "weights/model_only_age_imdb_4.29.pth.tar",
         #"path" : "weights/model_utk_age_gender_4.23_97.69.pth.tar",
-        #"path" : "weights/model_age_utk_4.23.pth.tar",
-        "path" : "weights/model_imdb_age_gender_4.22.pth.tar",
-        #"path" : r"C:\Users\saioa\Downloads\mivolo.onnx",
-        "class": MiVOLOAgeEstimator,
+        #"path" : "weights/model_imdb_age_gender_4.22.pth.tar",
+
+
+        #MOBILENET WEIGHTS BOTH TRAINED UN UTK AND MORPH
+        #"path" : "weights/student_mivolo_final_mobile_large_100.pth",
+        #"path" : "weights/student_mivolo_final_mobile_large_100_PRUEBA_MORPH.pth",
+
+        #GHOSTNET WEIGHTS BOTH TRAINED UN UTK AND MORPH
+        #"path" : "weights/student_mivolo_final_ghost.pth",
+        "path" : "weights/student_mivolo_final_ghost_MORPH.pth",
+
+        #MOBILEVIT WEIGHTS BOTH TRAINED UN UTK AND MORPH
+        #"path" : "weights/student_mivolo_final_vits_xs_best.pth",
+        #"path" : "weights/student_mivolo_final_vits_xs_best_MORPH.pth",
+
+        # SIMPLE_VITS WEIGHTS BOTH TRAINED UN UTK AND MORPH
+        #"path" : "weights/student_mivolo_final_simple_vits_MORPH.pth",
+        #"path" : "weights/student_mivolo_final_simple_vits_UTK.pth",
+
+        #"class" : MiVOLOAgeEstimator,
+        "class": MobileNetAgeEstimator, 
+        "quant_type" : None
         #"quant_type" : "dynamicPTQfp16"
-        "quant_type": "dynamicPTQint8"
+        #"quant_type": "dynamicPTQint8"
         #"quant_type": "torchao2"
     }
 }
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUTH_JSON_PATH = os.path.join(BASE_DIR, "images_datasets","prueba_torchao_utk.json")
+OUTPUTH_JSON_PATH = os.path.join(BASE_DIR, "inference_outcomes_and_benchmark_log","distillation_newversion.json")
 #OUTPUTH_JSON_PATH = os.path.join(BASE_DIR, "inference_outcomes_and_benchmark_log","morph_prueba_quant_16.json")
 
 def print_pipeline_status(config, device):
@@ -107,3 +126,8 @@ def process_images_folder(folder_path, save_photo=False):
 
 if __name__ == "__main__":
     process_images_folder(r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\prueba\morph")
+    #process_images_folder(r"C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\images_datasets\UTKFace")
+
+    print(torch.load(r'C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\teacher_logits_cache\1_0_0_20161219140623097.pt.chip.pt'))
+    print(torch.load(r'C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\teacher_logits_cache\1_0_0_20161219154556757.pt.chip.pt'))
+    print(torch.load(r'C:\Users\saioa\Desktop\resi_GVIS\basic_pipeline\teacher_logits_cache\1_0_0_20161219203009924.pt.chip.pt'))

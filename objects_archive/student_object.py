@@ -4,22 +4,28 @@ import timm
 
 class StaticStudentMiVOLO(nn.Module):
     def __init__(self, num_outputs=3):
-        super().__init__()
-        #self.backbone = timm.create_model('mobilenetv3_small_050', pretrained=False, num_classes=0)
-        #2self.backbone = timm.create_model('mobilenetv3_large_100', pretrained=True, num_classes=0)
-        #self.backbone = timm.create_model('efficientformer_l1', pretrained=True, num_classes=0)
-        #1self.backbone = timm.create_model('mobilevit_xs', pretrained=True, num_classes=0)
-        #self.backbone = timm.create_model('spnasnet_100', pretrained=True, num_classes=0)
+        super().__init__() #SELECT THE STUDENT MODEL
+        
+        # BACKBONES USED ON THE REPORT
+        #self.backbone = timm.create_model('mobilenetv3_large_100', pretrained=True, num_classes=0)
+        #self.backbone = timm.create_model('mobilevit_xs', pretrained=True, num_classes=0)
         self.backbone = timm.create_model('ghostnet_100', pretrained=True, num_classes=0)
+        #self.backbone = timm.create_model('vit_tiny_patch16_224', pretrained=True, num_classes=0)
+
+        # BACKBONES TESTED BUT NOT USED ON THE REPORT BECAUSE OF LOW PERFORMANCE
+        #self.backbone = timm.create_model('efficientformer_l1', pretrained=True, num_classes=0)
+        #self.backbone = timm.create_model('mobilenetv3_small_050', pretrained=False, num_classes=0)
+        #self.backbone = timm.create_model('spnasnet_100', pretrained=True, num_classes=0)
         #self.backbone = timm.create_model('convnext_tiny', pretrained=True, num_classes=0)
+        
         num_features = self.backbone.num_features
         
-        # CAMBIO: Usamos una red pequeña para la cabeza de edad para mayor estabilidad
+        # CHANGE: We use a small net for the head section to ensure greater stability.
         self.age_head = nn.Sequential(
             nn.Linear(num_features, 64),
             nn.ReLU(),
             nn.Linear(64, 1)
-            #nn.Tanh(), # Forzamos el rango a [-1, 1] para que coincida con la escala del logit
+            #nn.Tanh(), # We force the range to [-1, 1] to match the logit scale
         )
         
         self.gender_head = nn.Linear(num_features, 2)

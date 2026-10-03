@@ -1,29 +1,32 @@
 import torch
 import torch.nn as nn
+import json
+from torch.utils.data import Dataset
+import os
+from PIL import Image
 
-
-# ESTA CLASE ES EL CORAZÓN DE LA CUANTIZACIÓN
+# KEY CLASS FOR QUANTIZATION
 class QuantizedLinear(nn.Module):
     def __init__(self, original_linear, w_int, scale):
         super().__init__()
         self.bias = original_linear.bias
-        # Registramos los pesos y la escala como buffers para que 
-        # se guarden con el modelo y se muevan a la GPU automáticamente
+        # We record the weights and scale as buffers so that 
+        # be stored with the model and automatically moved to the GPU
         self.register_buffer('w_int', w_int)
         self.register_buffer('scale', scale)
         self.bias = original_linear.bias
     
     def forward(self, x):
-        # 1. Antes de convertir
+        # 1. Before weight converting
         tipo_int = self.w_int.dtype
-        # 2. La conversión
+        # 2. conversion
         #w_float = self.w_int.to(x.dtype) * self.scale
         w_float = self.w_int.to(torch.float16) * self.scale.to(torch.float16)
-        # 3. Después de convertir
+        # 3. After converting
         tipo_float = w_float.dtype
-        # Este print solo se ejecutará la primera vez para no saturar la consola
+        # This print statement will only execute the first time, so as not to clutter the console.
         if not hasattr(self, 'printed_once'):
-            print(f"[DEBUG] Capa {self}: Conversión realizada | {tipo_int} -> {tipo_float}")
+            print(f"[DEBUG] Layer {self}: Conversion completed | {tipo_int} -> {tipo_float}")
             self.printed_once = True
         bias_fp16 = self.bias.to(torch.float16) if self.bias is not None else None
             
@@ -40,11 +43,11 @@ class CalibrationObserver(nn.Module):
 
     def forward(self, x):
         self.call_count += 1
-        # Capturamos estadísticas del tensor de entrada
+        # We capture statistics from the input tensor
         batch_min = x.detach().min()
         batch_max = x.detach().max()
         
-        # Actualizamos los límites globales de esta capa
+        # We are updating the global limits for this layer.
         if self.min_val > batch_min:
             self.min_val.fill_(batch_min)
             
@@ -52,7 +55,7 @@ class CalibrationObserver(nn.Module):
             self.max_val.fill_(batch_max)
 
         '''if self.call_count % 50 == 0:
-            print(f"[DEBUG] Observador {self.linear}: capturadas {self.call_count} muestras. Rango actual: [{self.min_val:.4f}, {self.max_val:.4f}]")'''
+            print(f"[DEBUG] Observer {self.linear}: {self.call_count} samples captured. Actual range: [{self.min_val:.4f}, {self.max_val:.4f}]")'''
         
         return self.linear(x)
     
@@ -60,7 +63,7 @@ class CalibrationObserver(nn.Module):
 
 def inspect_weights(model):
     print(f"\n{'='*60}")
-    print(f"{'CAPA':<30} | {'DTYPE':<10} | {'RANGO (MIN/MAX)':<15}")
+    print(f"{'LAYER':<30} | {'DTYPE':<10} | {'RANGE (MIN/MAX)':<15}")
     print(f"{'-'*60}")
     
     for name, module in model.named_modules():
@@ -77,15 +80,15 @@ def inspect_weights(model):
 
 def inspect_calibration_stats(model):
     print("\n" + "="*50)
-    print("INSPECCIÓN DE RANGOS DE CALIBRACIÓN")
+    print("CALIBRATION RANGE INSPECTION")
     print("="*50)
     for name, module in model.named_modules():
         if isinstance(module, CalibrationObserver):
             min_v = module.min_val.item()
             max_v = module.max_val.item()
-            # Si el valor sigue siendo infinito, significa que la capa nunca vio datos
-            status = "OK" if (min_v != float('inf') and max_v != float('-inf')) else "¡ADVERTENCIA: SIN DATOS!"
-            print(f"Capa: {name:40} | Rango: [{min_v:7.2f}, {max_v:7.2f}] | Estado: {status}")
+            # If the value remains infinite, it means the layer never saw any data.
+            status = "OK" if (min_v != float('inf') and max_v != float('-inf')) else "¡WARNING: NO DATA!"
+            print(f"Layer: {name:40} | Range: [{min_v:7.2f}, {max_v:7.2f}] | Status: {status}")
     print("="*50 + "\n")
 
 def verificar_cuantizacion(model):
@@ -93,49 +96,49 @@ def verificar_cuantizacion(model):
     import torch
     
     print("\n" + "="*80)
-    print(f"{'CAPA':<30} | {'TIPO BUFFER':<20} | {'DTYPE REAL'}")
+    print(f"{'LAYER':<30} | {'BUFFER TYPE':<20} | {'REAL DTYPE'}")
     print("="*80)
     
     for name, module in model.named_modules():
         if isinstance(module, torch.nn.Linear):
             peso = module.weight
             if isinstance(peso, AffineQuantizedTensor):
-                # Accedemos al tensor que contiene los bits empaquetados
-                # En torchao, el buffer de datos suele estar en ._data o .tensor_impl
+                # We access the tensor containing the packed bits.
+                # In Torchao, the data buffer is usually located in ._data or .tensor_impl.
                 buffer = peso._data if hasattr(peso, '_data') else peso
                 
-                # Intentamos mostrar el dtype del buffer interno
-                dtype_real = getattr(buffer, 'dtype', 'Desconocido')
+                # We attempt to show the dtype of the internal buffer.
+                dtype_real = getattr(buffer, 'dtype', 'Unknown')
                 tipo_obj = type(buffer).__name__
                 
                 print(f"{name:<30} | {tipo_obj:<20} | {dtype_real}")
             else:
-                print(f"{name:<30} | [!] NO CUANTIZADO")
+                print(f"{name:<30} | [!] UNQUANTIZED")
     print("="*80 + "\n")
 
 def activar_debug_inferencia(self):
     def hook_fn(module, input, output):
-        # input[0] es la activación (entrada), module.weight es el peso
+        # input[0] is the activation (input), module.weight is the weight.
         weight = module.weight
         
-        # Obtenemos el nombre del objeto para ver si es el cuantizado
+        # We obtain the object's name to see if it is the quantized one.
         tipo_peso = type(weight).__name__
         
-        # Intentamos acceder al almacenamiento real (buffer) si es cuantizado
+        # We attempt to access the actual storage (buffer) if it is quantized.
         data_type = getattr(weight, 'dtype', 'Desconocido')
         
-        print(f"\n[DEBUG INFERENCIA] Capa: {module}")
-        print(f"  Tipo de objeto peso: {tipo_peso}")
+        print(f"\n[DEBUG INFERENCE] Layer: {module}")
+        print(f"  Object type weight: {tipo_peso}")
         
-        # Aquí está la prueba: Si es un AffineQuantizedTensor, 
-        # su almacenamiento interno es int8/int4, no float32.
+        # Here's the proof: If it's an AffineQuantizedTensor, 
+        # Its internal storage is int8/int4, not float32.
         if hasattr(weight, '_data'):
-            print(f"  Dtype del buffer interno (bits): {weight._data.dtype}")
+            print(f" Internal buffer dtype (bits): {weight._data.dtype}")
         elif hasattr(weight, 'tensor_impl'):
              # En versiones modernas de torchao
-             print(f"  Estructura interna: {type(weight.tensor_impl).__name__}")
+             print(f"  Internal structure: {type(weight.tensor_impl).__name__}")
     
-    # Registramos el hook en la primera capa lineal que encontremos
+    # We register the hook on the first linear layer we find.
     for name, module in self.model.named_modules():
         if isinstance(module, torch.nn.Linear):
             module.register_forward_hook(hook_fn)
